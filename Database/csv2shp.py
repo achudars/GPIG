@@ -61,10 +61,13 @@ print "Found " + str(count) + " CSV files"
 print "Starting parsing into " + args.output
 
 # Crime conversion table
-crimes = {'Other crime': 'other-crime', 'Violent crime': 'violent-crime', 'Vehicle crime': 'vehicel-crime',
+crimes = {'Other crime': 'other-crime', 'Violent crime': 'violent-crime', 'Vehicle crime': 'vehicle-crime',
 'Shoplifting': 'shoplifting', 'Robbery': 'robbery', 'Public disorder and weapons': 'public-disorder-weapons',
 'Other theft': 'other-theft', 'Drugs': 'drugs', 'Criminal damage and arson': 'criminal-damage-arson',
 'Burglary': 'burglary', 'Anti-social behaviour': 'anti-social-behaviour', 'All crime': 'all-crime'}
+
+# Some sort of arbitrary weighting function for crimes (could even be per incident from source data)
+weights = {'other-crime': 1, 'violent-crime': 4, 'vehicle-crime': 2, 'shoplifting': 1, 'robbery': 3, 'public-disorder-weapons': 3, 'other-theft': 2, 'drugs': 2, 'criminal-damage-arson': 3, 'burglary': 2, 'anti-social-behaviour': 1, 'all-crime': 1}
 
 # Shape writer
 w = shp.Writer(shp.POINT)
@@ -75,6 +78,7 @@ w.autobalance = 1
 w.field('crime', 'C', 26)
 w.field('jurisdiction', 'C', 35)
 w.field('date', 'D')
+w.field('weight', 'N')
 
 for i, file in enumerate(csv_files):
     with open(file, 'rb') as csvfile:
@@ -94,7 +98,8 @@ for i, file in enumerate(csv_files):
             crime = (crimes[row[9]] if row[9] in crimes else 'all-crime')
             jurisdiction = row[3]
             date = ''.join(row[1].split('-')) + '01'
-            w.record(crime, jurisdiction, date)
+            weight = weights[crime]
+            w.record(crime, jurisdiction, date, weight)
 
     progress(i + 1, count)
 
