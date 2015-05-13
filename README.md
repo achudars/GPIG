@@ -4,14 +4,24 @@
 
 Database should be running on PostgreSQL, which on OS X is quite easy to set up (pending Windows guide), simply download [Postgres.app](https://github.com/PostgresApp/PostgresApp/releases) and run it. This will come with all the tools you need for the database server (including command-line tools).
 
-Assuming you have PostgreSQL server running, and PostGIS installed, you can restore a database of roughly 6.5 million incidents from 2014-01 to 2015-03 (not verified) as follows. Run these commands from the `Database` directory
+Assuming you have PostgreSQL server running and PostGIS installed, you can follow these steps to create a full database, consisting of two tables (`incidents` and `neighbourhoods` respectively).
 
-```bash
+First, create the database and enable PostGIS on it
+
+```
 createdb crimedata
-gunzip -c data.gz | psql crimedata
+psql -d crimedata -c "CREATE EXTENSION postgis;"
 ```
 
-Assuming the database restores without problems, you should be able to setup the PostGIS resource under GeoServer referencing [this guide](http://docs.geoserver.org/stable/en/user/data/database/postgis.html) (not verified).
+Then, from the `Database` directory, create and populate the two tables (note that both of these commands can take a long-LONG time to complete)
+
+```
+gunzip < incidents.sql.gz | psql -d crimedata
+gunzip < neighbourhoods.sql.gz | psql -d crimedata
+```
+
+Assuming the database restores without problems, you should be able to setup the PostGIS resource under GeoServer referencing [this guide](http://docs.geoserver.org/stable/en/user/data/database/postgis.html), note, both `neighbourhoods` and `incidents` should be separate layers.
+
 
 ## Basic Application
 
