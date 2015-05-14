@@ -9,8 +9,10 @@
 var url = '/geoserver/ows?';
 var featurePrefix = 'crime';
 var featureType = 'incidents';
+var featureType2 = 'neighbourhoods';
 var featureNS = 'http://census.gov';
 var layerTitle = 'Incidents';
+var layerTitle2 = 'Neighbourhoods';
 
 // var srsName = 'EPSG:900913';
 // var geometryName = 'the_geom';
@@ -41,10 +43,19 @@ var popup = new app.Popup({
   autoPan: true
 });
 
+var myStyle = {fill: true,fillColor: "#ff0000"};
+
+
 // the tiled WMS source for our local GeoServer layer
 var wmsSource = new ol.source.TileWMS({
   url: url,
   params: {'LAYERS': featurePrefix + ':' + featureType, 'TILED': true},
+  serverType: 'geoserver'
+});
+
+var wmsSource2 = new ol.source.TileWMS({
+  url: url,
+  params: {'LAYERS': featurePrefix + ':' + featureType2, 'TILED': true, STYLE:'line'},
   serverType: 'geoserver'
 });
 
@@ -84,6 +95,8 @@ var map = new ol.Map({
       title: 'Aerial Imagery',
       group: "background",
       visible: false,
+ 
+      
       source: new ol.source.MapQuest({layer: 'sat'})
     }),
     // MapQuest hybrid (uses a layer group)
@@ -99,11 +112,16 @@ var map = new ol.Map({
           source: new ol.source.MapQuest({layer: 'hyb'})
         })
       ]
+    }),  new ol.layer.Tile({
+      title: layerTitle2,
+      source: wmsSource2
+      
     }),
     new ol.layer.Tile({
       title: layerTitle,
       source: wmsSource
     })
+   
   ],
   // initial center and zoom of the map's view
   view: new ol.View({
