@@ -4,7 +4,6 @@
  * @require Popup.js
  * @require LayersControl.js
  */
-
 // ========= config section ================================================
 var url = '/geoserver/ows?';
 var featurePrefix = 'crime';
@@ -42,8 +41,6 @@ var popup = new app.Popup({
   closeBox: true,
   autoPan: true
 });
-
-var myStyle = {fill: true,fillColor: "#ff0000"};
 
 
 // the tiled WMS source for our local GeoServer layer
@@ -112,12 +109,12 @@ var map = new ol.Map({
           source: new ol.source.MapQuest({layer: 'hyb'})
         })
       ]
-    }),  new ol.layer.Tile({
+    }),   new ol.layer.Tile({
       title: layerTitle2,
       source: wmsSource2
       
     }),
-    new ol.layer.Tile({
+       new ol.layer.Tile({
       title: layerTitle,
       source: wmsSource
     })
@@ -131,6 +128,7 @@ var map = new ol.Map({
     minZoom: 13
   })
 });
+
 
 // register a single click listener on the map and show a popup
 // based on WMS GetFeatureInfo
