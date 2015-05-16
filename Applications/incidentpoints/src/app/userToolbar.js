@@ -1,59 +1,31 @@
 
 
 $( document ).ready(function() {
-    var uiconsole = new UIConsole();
-    uiconsole.listeners();
-});
-
-
-
-var UIConsole = function() {
-    //select user toolbar
-    this.ui = $("#ui-toolbox");  
-    
-    var checkboxes = {
-        "Antisocial Behaviour  ":"anti-social-behaviour",
-        "Violent Crimes " : "violent-crime",
-        "Drugs " : "drugs",
-        "Public Order " : "public-order",
-        "Other Crime ": "other-crime",
-        "Bicycle-Theft " : "bicycle-theft",
-        "Other theft " : "other-theft",
-        "Robbery " : "robbery",
-        "Possesion of Weapons " : "possesion-of-weapons",
-        "Burlgrary " : "burlgrary",
-        "Theft From The Person " : "theft-from-the-person",
-        "Vehicle Crime ": "vehicle-crime",
-        "Criminal Damage - Arson " : "criminal-damage-arson",
-        "Shoplifting" : "shoplifting" 
-    };
-    
-    //Add checkboxes for crime types
-    var chbx;
-    for(var propertyName in checkboxes) {
-        chbx = getCheckbox(checkboxes[propertyName]);
-        $(this.ui).append(chbx);
-        $(this.ui).append(propertyName);
-    }
-    
-   
-}
-
-function getCheckbox(val){
-    return $("<input>", {'type': "checkbox", "name" : "crimeType", "value": val});
-}
- 
-    
-UIConsole.prototype.listeners = function() {
+    //add datepickers
     $("#ui-toolbox input.datepickers").datepicker({ dateFormat: "dd-mm-yy" });
     
+    //add Listeners
+    //when inputs change
     $("#ui-toolbox input[type='checkbox'], #ui-toolbox input.datepickers").change(function(){
         applyFilters();     
     });
-
-  
-}
     
+    //select buttons clicked
+    $("#ui-toolbox #selectAll").click(function(e){
+        e.preventDefault();
+         $("#ui-toolbox input[type='checkbox']").prop("checked",true);        
+         applyFilters();     
+    });
+    
+    $("#ui-toolbox #deselectAll").click(function(e){
+        e.preventDefault();
+         $("#ui-toolbox input[type='checkbox']").prop("checked",false);        
+         applyFilters();     
+    });
+    
+});
+
+
 
 
 //Working on filters
