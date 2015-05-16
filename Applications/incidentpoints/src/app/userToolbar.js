@@ -1,11 +1,15 @@
+
+
 $( document ).ready(function() {
-    //$('#map').prepend("<div>Test</div>");
     var uiconsole = new UIConsole();
     uiconsole.listeners();
 });
 
+
+
 var UIConsole = function() {
-    this.ui = $("<div></div>", {'id': "ui-toolbox"});  
+    //select user toolbar
+    this.ui = $("#ui-toolbox");  
     
     var checkboxes = {
         "Antisocial Behaviour  ":"anti-social-behaviour",
@@ -24,20 +28,15 @@ var UIConsole = function() {
         "Shoplifting" : "shoplifting" 
     };
     
-    
-    $('#map').prepend(this.ui);
-    $(this.ui).append("<div>To be styled, etc</div>");
-    
+    //Add checkboxes for crime types
     var chbx;
     for(var propertyName in checkboxes) {
         chbx = getCheckbox(checkboxes[propertyName]);
         $(this.ui).append(chbx);
         $(this.ui).append(propertyName);
-   
-   
     }
     
-
+   
 }
 
 function getCheckbox(val){
@@ -46,47 +45,65 @@ function getCheckbox(val){
  
     
 UIConsole.prototype.listeners = function() {
-    $("#ui-toolbox input[type='checkbox']").change(function(){
-        crimeTypeFilter();      
+    $("#ui-toolbox input.datepickers").datepicker({ dateFormat: "dd-mm-yy" });
+    
+    $("#ui-toolbox input[type='checkbox'], #ui-toolbox input.datepickers").change(function(){
+        applyFilters();     
     });
+
+  
 }
     
-    
+
 
 //Working on filters
 
-function crimeTypeFilter(){
+function applyFilters(){
+    var filterVal;
+    var filterDate = dateFilter();
+    var filterCrime = crimeTypeFilter();
     
+    if(filterDate != ""){ //both filters set
+        filterVal = filterDate + " AND " + filterCrime;
+    } else {
+        filterVal = filterCrime; //even if empty, don't want to show any crimes than
+    }   
+    
+     wmsSource.updateParams({
+        CQL_FILTER: (filterVal)
+    });
+}
+
+
+function dateFilter() {
+  var filterVal ="",
+      fromDate = $("#ui-toolbox input.datepickers#fromDate").val(),
+      toDate = $("#ui-toolbox input.datepickers#toDate").val();  
+  
+  if(fromDate !="" && toDate !=""){ //both dates are set
+      filterVal ='(date BETWEEN ' + formatDate(fromDate)+ ' AND '+  formatDate(toDate) +')';
+  } else if (fromDate !="") { // from date is set     
+      filterVal ='(date > ' + formatDate(fromDate)+ ')';
+  } else if (toDate !="") { //to date is set
+      filterVal ='(date < ' + formatDate(toDate)+ ')';
+  } 
+  
+  return filterVal;
+}
+
+
+function crimeTypeFilter(){  
     var crime_type = $("#ui-toolbox input[type='checkbox']:checked").map(function() {
                 return this.value;
           }).get().join("' OR crime = '");
     
-    
-    
-    filterVal = "crime = '"+ crime_type+"'";
-    
-    console.log(filterVal);
-    
-    wmsSource.updateParams({
-        CQL_FILTER: (filterVal)
-    });
-    
-   
+    return "(crime = '"+ crime_type+"')";
 }
 
-//anti-social-behaviour
 
-
-
-
-/*
-var date = "2014-01-01";
-
-function dateFilter(date) {
-  var dateFilter ='stdate BETWEEN ' + date.fromDate + ' AND ' + date.toDate;
-  return '(' + dateFilter + ')';
+//modify date to be of supported format    
+function formatDate(date){  
+    var pieces = date.split('-');
+    pieces.reverse();
+    return pieces.join('-');
 }
-*/
-
-
-

@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="src/ol3/ol.css">
     <link rel="stylesheet" href="src/css/Popup.css">
     <link rel="stylesheet" href="src/css/LayersControl.css">
+    <link rel="stylesheet" href="src/jquery/jquery-ui-1.11.4/jquery-ui.css">
     <style>
       .layers-control {
         position: fixed;
@@ -37,6 +38,7 @@
     </style>
     <script src="src/ol3/ol-debug.js"></script>
     <script src="src/jquery/jquery.js"></script>
+    <script src="src/jquery/jquery-ui-1.11.4/jquery-ui.min.js"></script>
     <script src="src/bootstrap/js/bootstrap.js"></script>
     <title>Suite OpenLayers 3 Viewer</title>
   </head>
@@ -60,6 +62,15 @@
           </li>
         </ul>
       </div><!--/.navbar-collapse -->
+    </div>
+    <div id ="ui-toolbox">
+        <div>To be styled, etc</div>
+        From date: <input type="text" id="fromDate" class="datepickers">
+        To date: <input type="text" id="toDate" class="datepickers">  
+        
+        
+        
+        
     </div>
     <div id="map">
       <div id="popup" class="ol-popup">
