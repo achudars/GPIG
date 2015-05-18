@@ -17,7 +17,7 @@ var layerTitle2 = 'Neighbourhoods';
 // var geometryName = 'the_geom';
 // var geometryType = 'MultiPolygon';
 // var fields = ['STATE_NAME', 'STATE_ABBR'];
-// var infoFormat = 'application/vnd.ogc.gml/3.1.1'; // can also be 'text/html'
+var infoFormat = 'application/json'; // can also be 'text/html'
 var long = -1.082995;
 var lat = 53.958647;
 var zoom = 15;
@@ -130,49 +130,90 @@ var map = new ol.Map({
 });
 
 
-// register a single click listener on the map and show a popup
-// based on WMS GetFeatureInfo
-// map.on('singleclick', function(evt) {
-//   var viewResolution = map.getView().getResolution();
-//   var url = wmsSource.getGetFeatureInfoUrl(
-//       evt.coordinate, viewResolution, map.getView().getProjection(),
-//       {'INFO_FORMAT': infoFormat});
-//   if (url) {
-//     if (infoFormat == 'text/html') {
-//       popup.setPosition(evt.coordinate);
-//       popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
-//       popup.show();
-//     } else {
-//       $.ajax({
-//         url: url,
-//         success: function(data) {
-//           var features = format.readFeatures(data);
-//           highlight.getSource().clear();
-//           if (features && features.length >= 1 && features[0]) {
-//             var feature = features[0];
-//             var html = '<table class="table table-striped table-bordered table-condensed">';
-//             var values = feature.getProperties();
-//             var hasContent = false;
-//             for (var key in values) {
-//               if (key !== 'the_geom' && key !== 'boundedBy') {
-//                 html += '<tr><td>' + key + '</td><td>' + values[key] + '</td></tr>';
-//                 hasContent = true;
-//               }
-//             }
-//             if (hasContent === true) {
-//               popup.setPosition(evt.coordinate);
-//               popup.setContent(html);
-//               popup.show();
-//             }
-//             feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-//             highlight.getSource().addFeature(feature);
-//           } else {
-//             popup.hide();
-//           }
-//         }
-//       });
-//     }
-//   } else {
-//     popup.hide();
-//   }
-// });
+ //register a single click listener on the map and show a popup
+ //based on WMS GetFeatureInfo
+ map.on('singleclick', function(evt) {
+  getNeigbourhoodCrime(evt);
+ 
+   var viewResolution = map.getView().getResolution();
+   var url = wmsSource2.getGetFeatureInfoUrl(
+       evt.coordinate, viewResolution, map.getView().getProjection(),
+       {'INFO_FORMAT': infoFormat});
+   //if (url) {
+   //  if (infoFormat == 'application/json') {
+   //    popup.setPosition(evt.coordinate);
+   //    popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
+   //    popup.show();
+   //  } else {      
+   //    $.ajax({
+   //      url: url,
+   //      success: function(data) {
+   //        var features = format.readFeatures(data);
+   //        highlight.getSource().clear();
+   //        if (features && features.length >= 1 && features[0]) {
+   //          var feature = features[0];
+   //          var html = '<table class="table table-striped table-bordered table-condensed">';
+   //          var values = feature.getProperties();
+   //          var hasContent = false;
+   //          for (var key in values) {
+   //            if (key !== 'the_geom' && key !== 'boundedBy') {
+   //              html += '<tr><td>' + key + '</td><td>' + values[key] + '</td></tr>';
+   //              hasContent = true;
+   //            }
+   //          }
+   //          if (hasContent === true) {
+   //            popup.setPosition(evt.coordinate);
+   //            popup.setContent(html);
+   //            popup.show();
+   //          }
+   //          feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+   //          highlight.getSource().addFeature(feature);
+   //        } else {
+   //          popup.hide();
+   //        }
+   //      }
+   //    });
+   //  }
+   //} else {
+   //  popup.hide();
+   //}
+ });
+ 
+ function getNeigbourhoodCrime(event) {
+  // use a CQL parser for easy filter creation
+    //var format = new ol.format;
+   
+  var viewResolution = map.getView().getResolution();
+  var url = wmsSource2.getGetFeatureInfoUrl(
+       event.coordinate, viewResolution, map.getView().getProjection(),
+       {'INFO_FORMAT': infoFormat});
+  
+  $.getJSON(url,function(data){
+    var neighbourhood = data.features[0].geometry.coordinates;
+    console.log(neighbourhood);
+    var query = [];
+    
+    for (var i = 0; i < neighbourhood.length; i++) {
+      neighbourhood[0][0][i][0], neighbourhood[0][0][i][1] = neighbourhood[0][0][i][1], neighbourhood[0][0][i][0];
+      query.push(neighbourhood[0][0][i].join(' '));
+    }
+    wmsSource.updateParams({
+        CQL_FILTER: ('WITHIN(geom, POLYGON(('+query.join()+')))')
+    });
+    // wmsSource.updateParams({
+    //    CQL_FILTER: ('WITHIN(geom, POLYGON(('+neighbourhood[0][0]+')))')
+    //});
+    //console.log(query.join());
+    });
+  
+  
+  //window.alert(neighbourhood);
+  
+  
+  
+    popup.setPosition(event.coordinate);
+               popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
+               popup.show();
+  //var html ;
+  //return html;
+ } 
