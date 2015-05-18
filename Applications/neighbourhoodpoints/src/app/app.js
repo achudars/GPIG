@@ -17,17 +17,11 @@ var layerTitle2 = 'Neighbourhoods';
 // var geometryName = 'the_geom';
 // var geometryType = 'MultiPolygon';
 // var fields = ['STATE_NAME', 'STATE_ABBR'];
-// var infoFormat = 'application/vnd.ogc.gml/3.1.1'; // can also be 'text/html'
+var infoFormat = 'application/json';
 var long = -1.082995;
 var lat = 53.958647;
 var zoom = 15;
 // =========================================================================
-
-ol2client = new OpenLayers.WPSClient({
-        servers: {
-            local: '/geoserver/wps'
-        }
-});
 
 // override the axis orientation for WMS GetFeatureInfo
 var proj = new ol.proj.Projection({
@@ -61,6 +55,12 @@ var wmsSource2 = new ol.source.TileWMS({
   params: {'LAYERS': featurePrefix + ':' + featureType2, 'TILED': true, STYLE:'line'},
   serverType: 'geoserver'
 });
+
+//ol2client = new OpenLayers.WPSClient({
+//        servers: {
+//            local: '/geoserver/wps'
+//        }
+//});
 
 // create the OpenLayers Map object
 // we add a layer switcher to the map with two groups:
@@ -136,49 +136,55 @@ var map = new ol.Map({
 });
 
 
-// register a single click listener on the map and show a popup
-// based on WMS GetFeatureInfo
-// map.on('singleclick', function(evt) {
-//   var viewResolution = map.getView().getResolution();
-//   var url = wmsSource.getGetFeatureInfoUrl(
-//       evt.coordinate, viewResolution, map.getView().getProjection(),
-//       {'INFO_FORMAT': infoFormat});
-//   if (url) {
-//     if (infoFormat == 'text/html') {
-//       popup.setPosition(evt.coordinate);
-//       popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
-//       popup.show();
-//     } else {
-//       $.ajax({
-//         url: url,
-//         success: function(data) {
-//           var features = format.readFeatures(data);
-//           highlight.getSource().clear();
-//           if (features && features.length >= 1 && features[0]) {
-//             var feature = features[0];
-//             var html = '<table class="table table-striped table-bordered table-condensed">';
-//             var values = feature.getProperties();
-//             var hasContent = false;
-//             for (var key in values) {
-//               if (key !== 'the_geom' && key !== 'boundedBy') {
-//                 html += '<tr><td>' + key + '</td><td>' + values[key] + '</td></tr>';
-//                 hasContent = true;
-//               }
-//             }
-//             if (hasContent === true) {
-//               popup.setPosition(evt.coordinate);
-//               popup.setContent(html);
-//               popup.show();
-//             }
-//             feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-//             highlight.getSource().addFeature(feature);
-//           } else {
-//             popup.hide();
-//           }
-//         }
-//       });
-//     }
-//   } else {
-//     popup.hide();
-//   }
-// });
+ //register a single click listener on the map and show a popup
+ //based on WMS GetFeatureInfo
+map.on('singleclick', function(evt) {
+    getNeigbourhoodCrime(evt);
+});
+ 
+function getNeigbourhoodCrime(event) {
+ // use a CQL parser for easy filter creation
+ //var format = new ol.format;
+  
+ var viewResolution = map.getView().getResolution();
+ var url = wmsSource2.getGetFeatureInfoUrl(
+      event.coordinate, viewResolution, map.getView().getProjection(),
+      {'INFO_FORMAT': infoFormat}
+ );
+ 
+ $.getJSON(url,function(data){
+   var neighbourhood = data.features[0].geometry.coordinates;
+   var mpoly = [];
+   // for each polygon
+   for (var npoly = 0; npoly < neighbourhood.length; npoly++) {
+      var poly = [];
+      // for each polygon part
+      for (var npart = 0; npart < neighbourhood[npoly].length; npart++) {
+         var part = [];
+         // for each vertex
+         for (var vertex = 0; vertex < neighbourhood[npoly][npart].length; vertex++) {
+            // swap lon lat
+            neighbourhood[npoly][npart][vertex][0], neighbourhood[npoly][npart][vertex][1] = neighbourhood[npoly][npart][vertex][1], neighbourhood[npoly][npart][vertex][0];
+            // add space separated
+            part.push(neighbourhood[npoly][npart][vertex].join(' '));
+         }
+         // add this part to poly
+         poly.push(part.join(','));
+      }
+      // add this poly to mpoly
+      mpoly.push('(' + poly.join('),(') + ')');
+   }
+   var query = '(' + mpoly.join('),(') + ')';
+   console.log(query);
+
+   wmsSource.updateParams({
+       CQL_FILTER: ('WITHIN(geom, MULTIPOLYGON('+query+'))')
+   });
+   });
+ 
+//   popup.setPosition(event.coordinate);
+//   popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
+//   popup.show();
+ //var html ;
+ //:return html;
+} 
