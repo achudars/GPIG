@@ -242,18 +242,20 @@ var map = new ol.Map({
     legendDiv.appendChild(legendP);
     var layers = options.map.getLayers().getArray();
     for (var i = 0; i < layers.length; i++) {
-        if (layers[i] instanceof ol.layer.Group){
-            var layersFromGroup = layers[i].getLayers().getArray();
-            for (var j=0; i < layersFromGroup.length; j++){
-                try {
-                    var url = layersFromGroup[j].getSource().getUrls()[0];
-                } catch (err) {
-                    var url = layersFromGroup[j].getSource().getUrl();
-                }
-                var legendImg = document.createElement('img');
-                legendImg.src = url + '?REQUEST=GetLegendGraphic&sld_version=1.0.0&layer=' + layersFromGroup[j].getSource().getParams().layers + '&format=' + format;
-                legendDiv.appendChild(legendImg);
-            }
+        if (layers[i].values_.title  === 'Incident Types' ){
+          var legendImg = document.createElement('img');
+          legendImg.src = 'geoserver/wms?REQUEST=GetLegendGraphic&sld_version=1.0.0&layer=' + layers[i].getSource().params_.LAYERS + '&format=' + format;
+          legendDiv.appendChild(legendImg);
+        }
+        if (layers[i].values_.title  === 'Incidents' ){
+          var legendImg = document.createElement('img');
+          legendImg.src = 'geoserver/wms?REQUEST=GetLegendGraphic&sld_version=1.0.0&layer=' + layers[i].getSource().params_.LAYERS + '&format=' + format;
+          legendDiv.appendChild(legendImg);
+        }
+        if (layers[i].values_.title  === 'Neighbourhoods' ){
+          var legendImg = document.createElement('img');
+          legendImg.src = 'geoserver/wms?REQUEST=GetLegendGraphic&sld_version=1.0.0&layer=' + layers[i].getSource().params_.LAYERS + '&format=' + format;
+          legendDiv.appendChild(legendImg);
         }
     }
      ol.control.Control.call(this, {
