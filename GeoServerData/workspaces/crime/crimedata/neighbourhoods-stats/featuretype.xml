@@ -1,11 +1,11 @@
 <featureType>
   <id>FeatureTypeInfoImpl-a9b9c0d:14d686bc2ce:-8000</id>
-  <name>neighbourhood-stats</name>
+  <name>neighbourhoods-stats</name>
   <nativeName>Neighbourhood Stats</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
   </namespace>
-  <title>Neighbourhood Stats</title>
+  <title>Neighbourhoods Stats</title>
   <abstract>Grouping crime stats for neighbourhoods contained within a bounding box that can be defined using the TOP, LEFT, BOTTOM, RIGTH variables</abstract>
   <keywords>
     <string>Neighbourhood Stats</string>
@@ -43,12 +43,12 @@
         <defaultValue/>
       </dimensionInfo>
     </entry>
-    <entry key="cachingEnabled">false</entry>
     <entry key="elevation">
       <dimensionInfo>
         <enabled>false</enabled>
       </dimensionInfo>
     </entry>
+    <entry key="cachingEnabled">false</entry>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>Neighbourhood Stats</name>

@@ -1,7 +1,7 @@
 <GeoServerTileLayer>
   <id>LayerInfoImpl-a9b9c0d:14d686bc2ce:-7fff</id>
   <enabled>true</enabled>
-  <name>crime:neighbourhood-stats</name>
+  <name>crime:neighbourhoods-stats</name>
   <mimeFormats>
     <string>image/jpeg</string>
     <string>image/png</string>
@@ -41,7 +41,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>polygon</defaultStyle>
+      <defaultStyle>postcodes</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
