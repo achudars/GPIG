@@ -52,7 +52,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>Neighbourhood Stats</name>
-        <sql>SELECT * FROM (SELECT gid, name, geom, (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM (SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) GROUP BY crime) i) AS stats FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%, %BOTTOM%, %RIGHT%, %TOP%, 4326))) t1
+        <sql>SELECT * FROM (SELECT gid, name, geom, (SELECT COUNT(*) FROM incidents i WHERE ST_Within(i.geom, n.geom)) AS crimecount, (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM (SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) GROUP BY crime) i) AS stats FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%, %BOTTOM%, %RIGHT%, %TOP%, 4326))) t1
 </sql>
         <escapeSql>false</escapeSql>
         <keyColumn>gid</keyColumn>
