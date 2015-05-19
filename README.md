@@ -1,6 +1,8 @@
 # GPIG
 
-## Database installation/restoration
+## Setup/installation
+
+### Database installation/restoration
 
 Database should be running on PostgreSQL, which on OS X is quite easy to set up (pending Windows guide), simply download [Postgres.app](https://github.com/PostgresApp/PostgresApp/releases) and run it. This will come with all the tools you need for the database server (including command-line tools).
 
@@ -22,8 +24,25 @@ gunzip < neighbourhoods.sql.gz | psql -d crimedata
 
 Assuming the database restores without problems, you should be able to setup the PostGIS resource under GeoServer referencing [this guide](http://docs.geoserver.org/stable/en/user/data/database/postgis.html), note, both `neighbourhoods` and `incidents` should be separate layers.
 
+### Migrating to a shared data directory (GeoServer)
 
-## Basic Application
+In order to share styles and track GeoServer configuration in the repository, we need to migrate the data directory to the one located in the repository. During this process you may lose some of the changes you've made locally, which you need to manually copy over later from your original local data directory.
+
+The shared data directory is located in the `GeoServerData` directory in the root of this repository. In order for GeoServer to start using this, you need to follow the appropriate guide in the user manual to change `GEOSERVER_DATA_DIR` variable to point to this new location:
+
+* [OS X](http://suite.opengeo.org/opengeo-docs/intro/installation/mac/postinstall.html#geoserver-data-directory)
+* [Windows](http://suite.opengeo.org/opengeo-docs/intro/installation/windows/postinstall.html#geoserver-data-directory)
+* [Ubuntu](http://suite.opengeo.org/opengeo-docs/intro/installation/ubuntu/postinstall.html#geoserver-data-directory)
+
+Note that the guides should also list the original data directory location, from which you can copy over any specific changes you've made (such as new styles, layers etc.) into the shared data directory. Make sure the location in the shared data directory mirrors that of the source, i.e the structure remains the same.
+
+## Applications
+
+All OpenLayers applications are located in `Applications`. In general, with every significant addition to the application we should create a new application. This can be done by simply duplicating the application you want the new version to be based on, and renaming the result.
+
+This will leave us with a nice set of applications that iteratively build upon one another, giving a better overview of progress that has been made. What is considered "significant" in this context is up to interpretation. However, if the changes will alter the data, or it's direct presentation (such as the style of the layer), or the user functionality (like modifying the UI by adding new controls) of the application, then a new application should be created.
+
+### Basic Application
 
 In the `Applications` folder, there is an application that can be used to display simple points for incidents (no interactions, no nothing). You can run this application by issuing the following command (assumes you are in the `Applications` folder and have Boundless SDK installed)
 
@@ -39,5 +58,4 @@ Assuming everything works, opening your browser to `http://localhost:9080` shoul
 
 ### Things to note
 
-* There is no way to interact with the incidents, for example you can't get more information about them.
-* Due to the number of incidents, the map zoom scale is limited, as zooming out too far would most likely freeze the application.
+* Due to the large number of incidents in the database, make sure your application is always zoom-limited, that way the application can never be overwhelmed as only a limited subset of incidents will be visible at any point.

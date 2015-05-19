@@ -1,0 +1,21 @@
+
+ Files 'hawaii.las' and 'hawaii.los' are binary.
+
+ From the header record(s):
+ Data Identification ='NADCON EXTRACTED REGION                                 '
+ Originating software ='NADGRD  '
+
+ Number of columns =  281    Number of rows =  201
+
+ Latitude:   minimum =     18.   maximum =     23.  increment =   .02500
+ Longitude:  minimum =    154.   maximum =    161.  increment =   .02500
+
+                                SHIFT STATISTICS
+ -----------------------------------------------------------------------
+                       Latitude     Longitude     Latitude     Longitude
+                           (seconds of arc)             (meters)
+ Minimum                -20.251       -10.261     -622.975      -294.455
+ Maximum                 -3.523        -9.725     -108.310      -284.085
+
+ Average                -11.617        -9.993     -357.282      -289.432
+ Standard Deviation       2.899          .114       89.223         2.622

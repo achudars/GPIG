@@ -1,0 +1,21 @@
+
+ Files 'mdhpgn.las' and 'mdhpgn.los' are binary.
+
+ From the header record(s):
+ Data Identification ='NADCON EXTRACTED REGION                                 '
+ Originating software ='NADGRD  '
+
+ Number of columns =   25    Number of rows =   17
+
+ Latitude:   minimum =     37.   maximum =     41.  increment =   .25000
+ Longitude:  minimum =     74.   maximum =     80.  increment =   .25000
+
+                                SHIFT STATISTICS
+ -----------------------------------------------------------------------
+                       Latitude     Longitude     Latitude     Longitude
+                           (seconds of arc)             (meters)
+ Minimum                  -.007         -.036        -.207         -.877
+ Maximum                   .018          .018         .545          .454
+
+ Average                   .001         -.003         .032         -.074
+ Standard Deviation        .003          .009         .104          .207

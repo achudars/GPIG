@@ -1,0 +1,45 @@
+<global>
+  <settings>
+    <id>SettingsInfoImpl--285b7e02:14d4812a9f4:-8000</id>
+    <contact>
+      <addressCity>New York</addressCity>
+      <addressCountry>USA</addressCountry>
+      <addressType>Work</addressType>
+      <contactEmail>contact@boundlessgeo.com</contactEmail>
+      <contactOrganization>Boundless</contactOrganization>
+      <contactPerson>Boundless</contactPerson>
+      <contactPosition>Customer Support</contactPosition>
+      <onlineResource>http://boundlessgeo.com/about/contact-us/customer-support/</onlineResource>
+    </contact>
+    <charset>UTF-8</charset>
+    <numDecimals>8</numDecimals>
+    <onlineResource>http://boundlessgeo.com/solutions/solutions-software/geoserver/</onlineResource>
+    <verbose>false</verbose>
+    <verboseExceptions>false</verboseExceptions>
+    <localWorkspaceIncludesPrefix>false</localWorkspaceIncludesPrefix>
+  </settings>
+  <jai>
+    <allowInterpolation>false</allowInterpolation>
+    <recycling>false</recycling>
+    <tilePriority>5</tilePriority>
+    <tileThreads>7</tileThreads>
+    <memoryCapacity>0.5</memoryCapacity>
+    <memoryThreshold>0.75</memoryThreshold>
+    <imageIOCache>false</imageIOCache>
+    <pngAcceleration>true</pngAcceleration>
+    <jpegAcceleration>true</jpegAcceleration>
+    <allowNativeMosaic>false</allowNativeMosaic>
+    <allowNativeWarp>false</allowNativeWarp>
+  </jai>
+  <coverageAccess>
+    <maxPoolSize>5</maxPoolSize>
+    <corePoolSize>5</corePoolSize>
+    <keepAliveTime>30000</keepAliveTime>
+    <queueType>UNBOUNDED</queueType>
+    <imageIOCacheThreshold>10240</imageIOCacheThreshold>
+  </coverageAccess>
+  <updateSequence>171</updateSequence>
+  <featureTypeCacheSize>0</featureTypeCacheSize>
+  <globalServices>true</globalServices>
+  <xmlPostRequestLogBufferSize>1024</xmlPostRequestLogBufferSize>
+</global>

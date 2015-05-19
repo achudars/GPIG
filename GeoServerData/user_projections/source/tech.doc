@@ -1,0 +1,500 @@
+NADCON Technical Notes
+
+These notes are for those who must alter the NADCON version 1.02 source
+code.  There are four reasons to modify the NADCON code:
+
+   1) Porting to a new machine and/or changing the default location
+      of the location (basename) of the NADCON grids;
+   2) Adding a new input/output file format;
+   3) Adding a new driver to the transformation subroutines;
+   4) Translating the code into a new programming language.
+
+These four types of modifications will be discussed in order after a
+first general discussion of the code.  The known discrepancies and
+system dependencies are given in Appendix A.
+
+                      Section 1.
+                  General Discusion
+
+NADCON is easy-to-use, flexible, robust.  It is easy to maintain.
+Options are clear and consistent and error messages are informative.
+NADCON is written in standard Fortran-77.
+
+The program units (procedures) are arranged with the main program
+driver, NADCON, first.  It is followed by the subroutines in
+alphabetical order.  Last are the functions, also in alphabetical
+order.  There are no BLOCK DATA units.  Also, there are no statement
+functions or ENTRY statements.  A list of the program units with a
+brief description of its function is given in Appendix B.  This list
+also gives the calling and called proceedures for each program unit.
+
+NADCON is interactive.  When executed NADCON first writes to the
+standard output (e.g. the CRT screen) general program information.  It
+then initializes variables and opens the files containing the gridded
+NAD 27 to NAD 83 shifts.  Next, the user is prompted for information.
+Within each of these prompts is the default.  NADCON then executes a
+loop once for each input data file record or interactively entered
+station information.  Within this loop, NADCON obtains a station name
+and location and determines if the station is within an area covered by
+one of the previously opened sets of gridded shift files.  If it is,
+NADCON transforms the location and writes the results to the output
+file and, optionally, to the screen.  When there are no more locations
+to be transformed, NADCON calculates statistics for all the
+transformations and (depending on the data format type) prints a
+summary report.
+
+NADCON station information may be entered interactively or with a file
+of station locations.  When station information is entered
+interactively, the user is prompted for each station's name, latitude,
+and longitude.  The latitude and longitude may by entered as decimal
+degrees; integer degrees, and decimal minutes; or, integer degrees,
+integer minutes, and decimal seconds.  The results for each location
+written on the screen as well as written in the output file.
+
+When NADCON is used with an input file of station names and locations,
+the user is prompted for the file type. This is the format of the
+station information in the input file.  At present three file formats
+have been coded, two general format types and the format used for
+horizontal data at the National Geodetic Survey and known as the Blue
+Book format.  A more complete description of these formats is given in
+Appendix C.  With an input file the user has the choice of having the
+results of each transformation sent to the screen as well as written to
+the output file.  The final report is always sent to the screen.  It is
+also written at the end of the output file when the input is in general
+file format type 1.
+
+
+                      Section 2.
+               Porting to a New Machine
+
+Ideally, porting NADCON to a new machine only involves recompiling the
+source code.  Because NADCON is essentially standard FORTRAN-77 the
+recompiling should be straightforward.  If the code will not recompile
+check Appendix A first.  If it will still not compile, check with other
+users of your machine to determine if there are special features or
+system dependencies that you must know about.  Please feel free to call
+me with any problems that you can not resolve.
+
+The most common code modification required when porting NADCON to a new
+machine is changing the default locations for the sets of NADCON grid
+files.  The locations for these files are defined by a DATA statements
+in the subroutine DGRIDS.  The name of the array variable which
+contains the grid locations is 'DFILES'.  DGRIDS contains also has an
+array variable named 'DAREA' which contains the area names used in the
+program output and which correspond to the sets of grid files.  The
+comment statements in the subroutine contain more information on these
+two arrays.  If the location of the sets of grid files is the only
+modification, then only the variable array DFILES needs to be altered.
+If however, the the order of the grids in the variable array, or the
+number of grids in the array DFILES is modified, then DAREA will have
+to be modified to correspond.
+
+The executable obtained after altering the code and recompiling should
+be checked against a standard version (e.g. the MS-DOS version).  This
+may be done by transforming on both machines a large set of randomly
+located data and then comparing the calculated results from the two
+machines.  This is especially necessary if the new machine does not
+carry the same number of bits in single and double precision
+variables.
+
+
+                      Section 3.
+               Adding New File Formats
+
+The subroutines that will need to be modified to add a new file
+format are: ENDREP, GETPT, IPARMS, WRTPT, and (optionally) FHELP.
+The subroutine FHELP will give a user who is accessing NADCON
+interactively a short description of the formats that are
+accepted by the program.  If FHELP is not updated when a new
+format is added, then the information available will be incomplete.
+
+The variables that are of interest are:
+
+    KEY => Convert from NAD 27 to NAD 83 (KEY=+1) or
+           Convert from NAD 83 to NAD 27 (KEY=-1)
+
+    ITYPE => File format types.  At present the following types are
+             available:
+       1) Free format type 1
+       2) Free format type 2
+       2) *80* Record - NGS Blue Book format
+
+These formats are described in the code in the subroutine FHELP and
+also in the subroutines TYPE1, TYPE2, and TYPE3.
+
+Begin adding a new file format by deciding whether the new format will
+be only for inputting data, only for outputting data, or both.  If data
+is to be read with a new format, but outputted the same as, for
+example, type 1 format or, data is read in with type 1 format but
+written out differently, then it may be possible modify to redefine
+type 1 data and only modify the subroutines that deal with it.
+
+The first subroutine to modify is IPARMS.  In this subroutine, the only
+alteration necessary is the statment that checks that the inputted
+format type is legal.  You may also want to modify the subroutine
+FHELP.  This subroutine writes to the screen description of the legal
+format types.
+
+The next subroutine to be modified is GETPT.  This subroutine is
+entered once (from subroutine MLOOP) for each location to be
+transformed.  If the calling variable NOPT is returned with a value of
+true, then that nothing more is done within the loop.  This is useful
+for files where there are valid data records intermixed with other
+types of records or when the inputted location is illegal.  When the
+calling variable EOF is returned from GETPT with a value of true then
+the the loop which inputs station location information is exited.  This
+variable is normally used to indicate the end of the file of input
+data.
+
+After each station location is returned from GETPT the calling program
+calculates the transformed location, going either from NAD 27 to NAD 83
+or from NAD 83 to NAD 27 depending on the value of KEY.  Some
+statistics and other variable are calculated before the value for each
+point location are printed.  The subroutine WRTPT must be altered to
+print out transformation information if a new format.  Either the
+transformed location can be written out in the same format as it was
+inputted (see for example how type 2 data is handled) or both the
+inputted location and the transformed location can be printed (see for
+example how type 1 data is handled).
+
+Finally, the subroutine ENDREP must be altered to allow for a new value
+of ITYPE.  This subroutine prints (or doesn't print) a summary report
+giving statistical information on all of the transformations.
+
+
+                      Section 4.
+    Adding a New Driver to the Transformation Subroutines
+
+The first subroutine to be concerned with the transformation is the
+subroutine TRANSF.  This subroutine determines whether the
+transformation is from from NAD 27 to NAD 83 or from NAD 83 to NAD 27
+and then sets up the calls to the subroutine TO83.  The transformation
+calculations are always FROM NAD 27 to NAD 83.  If the transformation
+is from NAD 83 to NAD 27, the transformation is iterated.  In this case
+the transformation is considered correct when the NAD 83 values
+returned by the subroutine TO83 are within a distance of 1.D-9 decimal
+degrees of the original NAD 83 values in both latitude and longitude.
+
+The following list is of the calling variables for subroutine TRANSF
+along with an explanation of their use.
+
+NAME    TYPE               USE
+----------------------------------------------------------------------
+NOGO   Logical       NOGO is false unless the transformation is out
+                     of bounds of all of the sets of gridded areas
+                     that have been opened.  The boundaries and other
+                     information about each gridded data set is found
+                     in the COMMONs /GDINFO/ and /AREAS/.
+RESP   Character*15  This value is set to the name of the area
+                     which supplied the transformation information.
+                     If the inputted location is within the bounds of
+                     more than one area, the first area in the COMMON
+                     for which the location is valid is used.
+XPT    Double Prec.  The input longitude, EAST positive, in decimal
+                     degrees.
+YPT    Double Prec.  The input latitude, NORTH positive, in decimal
+                     degrees.
+XPT2   Double Prec.  The transformed longitude, EAST positive, in
+                     decimal degrees.
+YPT2   Double Prec.  The transformed latitude, NORTH positive, in
+                     decimal degrees.
+DLAM   Single Prec.  The difference between the input latitude and
+                     transformed latitude in meters.
+DLOM   Single Prec.  The difference between the input longitude and
+                     transformed longitude in meters.
+DLAS   Single Prec.  The difference between the input latitude and
+                     transformed latitude in seconds of arc.
+DLOS   Single Prec.  The difference between the input longitude and
+                     transformed longitude in seconds of arc.
+KEY    Integer       KEY = +1 indicates a transformation of NAD 27
+                     coordinates to NAD 83 coordinates while
+                     KEY = -1 indicates a transformation of NAD 83
+                     coordinates to NAD 27 coordinates.
+ITYPE  Integer       Input file format type.
+
+There are several things to be aware of.  First, the meanings of the
+variables XPT, XPT2 and YPT, YPT2 change within the subroutine TRANSF
+if the transformation is from NAD 83 to NAD 27 (i.e.  KEY = -1) The
+values are exchanged before the call to subroutine TO83 and exchanged
+back after.  Thus, the meaning of these variables in the calling
+routine (MLOOP) is the same both before and after the call to TRANSF.
+Second, the differences are always NAD 83 minus NAD 27 regardless of
+the direction of the transformation.  Third, the variable ITMAX
+determines the maximum number of times that the NAD 83 to NAD 27
+transformation is iterated.  It is set to ten has never been
+insufficient.  In version 1.01 of NADCON it was set to five  -- but
+this proved insufficient for a few locations in Alaska.  Fourth, the
+variable SMALL (= 1.D-9) which is used to end the iteration was
+assigned this value because this is less than 1 millionth of a second
+of arc.  This value and the precision of the variables now declared as
+double precision may need to be changed depending on the machine
+architecture.
+
+The subroutine called by TRANSF to do the actual transformation
+is TO83.  This subroutine in turn calls two subroutines, FGRID and
+INTRP.  FGRID identifies the grid square in which a particular point
+is located in and calculates the corner coordinates.  INTRP
+determines the surface function for the square and interpolates
+the latitude and longitude shift values.  The subroutines called
+by INTRP are COEFF (which generates the coefficients for the
+surface functions), SURF (interpolates using the surface functions),
+and METERS (calculates the latitude and longitude shifts in meters).
+
+
+                      Section 5.
+   Translating NADCON Code into a New Programming Language
+
+Our main concern is that the transformed coordinated agree EXACTLY in
+both versions.  By 'exactly' we mean to within 0.00001 seconds of arc
+in both latitude and longitude.  As in Section 2, this is tested by
+transforming on both machines a large set of randomly located data and
+then comparing the calculated results from the two machines.  If
+requested, NGS can supply such a set.
+
+
+                      Appendix A.
+             Non-standard Components of NADCON
+                and System Dependencies
+
+In FORTRAN the first column is used for carriage control of line
+printers.  However, in order to force a "new page" on the terminal
+screen when executing NADCON we have used the ASCII vertical tab
+character instead of the FORTRAN column 1 carriage code of a "1".  The
+ASCII vertical tab character is also called a control-L and is ASCII
+decimal code 10.  There are five FORMAT statements where where this has
+been done.  They are source code records 863, 1306, 2100, 2419, and
+2651.  They have all been given a FORTRAN statement number of 2 and are
+the only statements in the NADCON code to have that statement number.
+They are immediately preceded in the code by a commented out FORMAT
+statement which contains a "1" in column 1.
+
+Some comment records and a few of the character strings in output
+statements contain characters which are not strict FORTRAN-77.  It is
+possible that an old compiler will not be able to process them even in
+those locations.  These characters are: '?', '<', '>', '!', '#', and
+':'.  I believe that the lower case characters in comments lines and in
+character strings should be handled OK by all compilers.
+
+I do not know of any other non-standard FORTRAN-77 and there are no
+system dependencies built into NADCON.  But, while the OPEN statements
+in NADCON follow strict FORTRAN-77 conventions, the syntax of OPEN
+statements often varies from machine to machine.  For those systems
+where the OPEN statements need to be altered, the OPEN statements occur
+in subroutines GRIDS, IPARMS, OPENFL.
+
+The default locations of the gridded data files may need to be changed
+on some machines.  The locations for these files are defined by a DATA
+statements in the subroutine DGRIDS.
+
+
+                      Appendix B.
+                 Program Units in NADCON
+
+ UNIT     FUNCTION
+----------------------------------------------------------------
+NADCON   Main program driver
+         CALLS: ENDREP, HEADR, INITL, IPARMS, MLOOP, NGRIDS
+         CALLED BY: -
+ASKPT    Interactively get the name and location of a point
+         CALLS: HMS, NBLANK, DCARD, RCARD
+         CALLED BY: GETPT
+COEFF    Generate coefficients for surface function
+         CALLS: -
+         CALLED BY: INTRP
+DGRIDS   Open NADCON grids using the default grid names and locations
+         CALLS: OPENFL
+         CALLED BY: NGRIDS
+DIAGRM   Print a small diagram of the area being transformed
+         CALLS: HMS
+         CALLED BY: ENDREP
+ENDREP   Gather statistics and write the end-of-program report
+         CALLS: DIAGRM, REPORT
+         CALLED BY: NADCON
+FGRID    Identify the grid square in which a point is located and pull
+         the corner coordinates converted into index coordinate system
+         CALLS: -
+         CALLED BY: TO83
+FHELP    Interactively give descriptions of the file formats types
+         CALLS: -
+         CALLED BY: IPARMS
+GETPT    Get the name and location of a point
+         CALLS: ASKPT, TYPE1, TYPE2, TYPE3
+         CALLED BY: MLOOP
+GRIDS    Opens NADCON grids listed in 'AREA.PAR' file
+         CALLS: NBLANK, OPENFL, CCARD
+         CALLED BY: NGRIDS
+HEADR    Print header information
+         CALLS: -
+         CALLED BY: NADCON
+HMS      Change from decimal degrees to degrees, minutes, and seconds
+         CALLS: -
+         CALLED BY: ASKPT, DIAGRM, MLOOP, TYPE1, TYPE2
+INITL    Initialize variables
+         CALLS: -
+         CALLED BY: NADCON
+INTRP    Determines a surface function for a grid square and
+         interpolates the latitude and longitude shifts.
+         CALLS: COEFF, METERS, SURF
+         CALLED BY: TO83
+IPARMS   Interactivly request for information needed by NADCON
+         CALLS: FHELP, NBLANK
+         CALLED BY: NADCON
+METERS   Compute the difference between two locations in meters
+         CALLS: -
+         CALLED BY: INTRP
+MLOOP    Main loop for getting a location and transforming it
+         CALLS: GETPT, HMS, TRANSF, WRTPT
+         CALLED BY: NADCON
+NBLANK   Return position of last non-blank in string or position of
+         first non-blank in a string
+         CALLS: -
+         CALLED BY: ASKPT, GRIDS, IPARMS, OPENFL, TO83, TYPE1, TYPE2,
+                    TYPE3
+NGRIDS   Open the NADCON grids files
+         CALLS: DGRIDS, GRIDS
+         CALLED BY: NADCON
+OPENFL   Opens the set of two data files given the basename
+         CALLS: NBLANK
+         CALLED BY: DGRIDS, GRIDS
+PRINT1   Print out the transformation results for type1 format and
+         for screen output using a pretty format
+         CALLS: -
+         CALLED BY: WRTPT
+PRINT2   Print out the transformation results for type 2 output
+         CALLS: -
+         CALLED BY: WRTPT
+PRINT3   Print out the transformation results for type 3 output
+         CALLS: -
+         CALLED BY: WRTPT
+REPORT   Print out the statistics for the transformations
+         CALLS: -
+         CALLED BY: ENDREP
+SURF     Interpolate from the grid at the location of the input point
+         CALLS: -
+         CALLED BY: INTRP
+TO83     Predict the NAD 83 latitude and longitude values given the
+         NAD 27 latitude and longitude and also returns the shift
+         between the datums in both arc seconds and meters
+         CALLS: FGRID, INTRP, NBLANK
+         CALLED BY: TRANSF
+TRANSF   Compute either the forward or inverse coordinate transformation
+         CALLS: TO83
+         CALLED BY: MLOOP
+TYPE1    Read a record from a file of type 1 format (free format)
+         CALLS: HMS, NBLANK, DCARD, RCARD
+         CALLED BY: GETPT
+TYPE2    Read a record from a file of type 1 format (free format)
+         CALLS: HMS, NBLANK, DCARD, RCARD
+         CALLED BY: GETPT
+TYPE3    Read a record from a file of type 3 format (Blue Book)
+         CALLS: NBLANK
+         CALLED BY: GETPT
+WRTPT    Write the point values to output file (and screen)
+         CALLS: PRINT1, PRINT2, PRINT3
+         CALLED BY: MLOOP
+CCARD    Read a character variable from a line of card image
+         CALLS: -
+         CALLED BY: GRIDS
+DCARD    Read a double precision number from a line of card image
+         CALLS: -
+         CALLED BY: TYPE1, TYPE2
+ICARD    Read an integer from a line of card image
+         (This function not currently used.)
+         CALLS: -
+         CALLED BY: -
+RCARD    Read a real number from a line of card image
+         CALLS: -
+         CALLED BY: ASKPT, TYPE1, TYPE2
+
+
+                      Appendix C.
+                   NADCON File Formats
+
+The following information is also given in the subroutine FHELP.
+
+
+ Free Format Type 1 - The first 40 characters of the input data record
+ may contain the station name or be blank.  The rest of the record
+ (columns 41-80) must contain the latitude and longitude.  They may be
+ given in (1) decimal degrees; (2) integer degrees and decimal minutes,
+ or (3) integer degrees, integer minutes, and decimal seconds.  The
+ decimal portion of the latitude MUST contain a decimal point as it is
+ used to determine which is the last number forming part of the
+ latitude.  The output will be in "pretty" format.
+
+ The following three records are examples of valid input records:
+
+ <------------ Columns 1-40 ------------><------------ Columns 41-80----------->
+ AAA                                     34.4444444      98.8888888
+ BBB                                     25 55.55555     76 56.66666
+ CCC                                     45 45 45.555   111 11 11.111
+
+ The following is an example of the output.  Note that with Free Format
+ Type 1 data, both the input and transformed latitude and longitude are
+ expressed in degrees, minutes, and seconds regardless of the method of
+ input.
+
+                           Transformation #:    1        Region: Conus
+
+ Station name:  AAA
+
+                                    Latitude                 Longitude
+  NAD 27 datum values:           34 26 39.99984           98 53 19.99968
+  NAD 83 datum values:           34 26 40.28857           98 53 21.25886
+  NAD 83 - NAD 27 shift values:         0.28873                  1.25918(secs.)
+                                        8.897                   32.144  (meters)
+  Magnitude of total shift:                      33.353(meters)
+
+
+ Free Format Type 2 - The first 40 characters of the input data record
+ must contain the latitude and longitude.  They may be given in (1)
+ decimal degrees; (2) integer degrees and decimal minutes, or (3)
+ integer degrees, integer minutes, and decimal seconds.  The decimal
+ portion of the latitude MUST contain a decimal point as it is used to
+ determine which is the last number forming part of the latitude.  The
+ rest of the input record (columns 41-80) may contain the station name
+ or be blank.  The output will be in the same format as the input but
+ will contain the transformed latitude and longitude.
+
+ The following three records are examples of valid input records:
+
+ <------------ Columns 1-40 ------------><------------ Columns 41-80----------->
+ 45 45 45.55555 111 11 11.11111          one
+ 25 55.5555555   76 56.6666666           two
+ 34.444444444    98.888888888            three
+
+ The following is an example of the output.
+
+ NADCON Version 1.02 - NAD 83 datum values converted from NAD 27 datum values
+   45 45 45.30043 111 11 13.94256        one
+   25 55.5778817   76 56.6404343         two
+   34.444524645    98.889238661          three
+
+
+ NGS Horizontal Blue Book format - *80* (Control Point) Record.  Only
+ the *80* records in a Blue Book file are used by NADCON, the other
+ records are passed through without change to the output.  On the *80*
+ records, only the latitude and longitude are modified - the rest of
+ the record is unchanged.  Thus, this format can be used with either
+ 'old' Blue Book files or 'new' Blue Book files.  On the *80* records,
+ the direction of the latitude must be north positive ('N') and the
+ direction of the longitude must be west positive ('W').  The precision
+ of the output will be the same as the precision of the input
+ latitude.
+
+ For more information on this format, please refer to:
+   'Input Formats and Specifications of the National Geodetic Survey'
+   'Data Base Volume 1. Horizontal Control Data'.
+ Published by the Federal Geodetic Control Committee in January, 1989
+ and available from: the National Geodetic Survey, NOAA, Rockville, MD
+ 20852.
+
+ The following input example is a *80* record from a Blue Book file
+ with NAD 27 coordinates:
+
+ 004560*80*096 KNOXVILLE CT HSE              411906578  N0930548534  W 277
+
+ The following example is of the output *80* record with the
+ transformed NAD 83 latitude and longitude.
+
+ 004560*80*096 KNOXVILLE CT HSE              411906566  N0930549268  W 277

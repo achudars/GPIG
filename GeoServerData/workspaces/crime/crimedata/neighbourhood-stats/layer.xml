@@ -1,0 +1,15 @@
+<layer>
+  <name>neighbourhood-stats</name>
+  <id>LayerInfoImpl-a9b9c0d:14d686bc2ce:-7fff</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fe0</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-a9b9c0d:14d686bc2ce:-8000</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

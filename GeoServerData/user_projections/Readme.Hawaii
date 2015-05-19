@@ -1,0 +1,36 @@
+                                                        April 16, 1990
+
+
+                           Hawaii data sets for NADCON
+
+These two double density disks (or one high density disk) contain the
+Hawaii data grids for use with the NADCON program.  The hawaii.las and
+the hawaii.los files are each 227856 bytes.  The Hawaii data was gridded
+at 1.5 minute increments and covers an area from 18 to 23 degrees north
+and from 154 to 161 degrees west.
+
+There are two problems with the geodetic station information in Hawaii.
+First, on the south side of the island of Hawaii, there is tectonic
+deformation.  This deformation can be up to about 6 meters.  In order to
+create the NADCON grids, we had to reject about 16 first and second
+order stations because they showed NAD 27 to NAD 83 transformation
+shifts that were out of line with the transformation shifts of other
+stations in the area.
+
+Second, the Hawaii data was never on the NAD 27 datum, but was on its
+own datum (the "Old Hawaiian" datum).  However, there have been more
+than one "Old Hawaiian" datums.  All of the first and second order
+stations and many of the third order stations were on the same datum.
+The transformation shifts of these stations were what we modeled for
+NADCON.  However, about 300 third order stations did not fit the rest of
+the data, presumably because they had never been asjusted to the same
+Old Hawaiian datum.  These stations were not used when we created the
+NADCON hawaii grids.
+
+If you have any questions as to what order station you are using
+please contact:
+
+Mr. David Doyle           or    Ms. Cindy Craig                  
+N/GS4                           N/NGS21              
+Telephone: (301) 713-3178       Telephone: (301) 713-3194
+email: daved@ngs.noaa.gov       email: cindy@ngs.noaa.gov

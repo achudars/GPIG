@@ -1,0 +1,21 @@
+
+ Files 'prvi.las' and 'prvi.los' are binary.
+
+ From the header record(s):
+ Data Identification ='NADCON EXTRACTED REGION                                 '
+ Originating software ='NADGRD  '
+
+ Number of columns =   81    Number of rows =   41
+
+ Latitude:   minimum =     17.   maximum =     19.  increment =   .05000
+ Longitude:  minimum =     64.   maximum =     68.  increment =   .05000
+
+                                SHIFT STATISTICS
+ -----------------------------------------------------------------------
+                       Latitude     Longitude     Latitude     Longitude
+                           (seconds of arc)             (meters)
+ Minimum                 -7.279        -1.547     -223.801       -45.477
+ Maximum                 -6.990        -1.305     -214.887       -38.181
+
+ Average                 -7.128        -1.417     -219.158       -41.694
+ Standard Deviation        .079          .066        2.428         1.951

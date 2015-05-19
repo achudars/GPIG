@@ -1,0 +1,94 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-a9b9c0d:14d686bc2ce:-8000</id>
+  <name>neighbourhood-stats</name>
+  <nativeName>Neighbourhood Stats</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
+  </namespace>
+  <title>Neighbourhood Stats</title>
+  <abstract>Grouping crime stats for neighbourhoods contained within a bounding box that can be defined using the TOP, LEFT, BOTTOM, RIGTH variables</abstract>
+  <keywords>
+    <string>Neighbourhood Stats</string>
+    <string>features</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>-180.0</minx>
+    <maxx>180.0</maxx>
+    <miny>-90.0</miny>
+    <maxy>90.0</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-180.0</minx>
+    <maxx>180.0</maxx>
+    <miny>-90.0</miny>
+    <maxy>90.0</maxy>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="time">
+      <dimensionInfo>
+        <enabled>false</enabled>
+        <defaultValue/>
+      </dimensionInfo>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+    <entry key="elevation">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
+    </entry>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>Neighbourhood Stats</name>
+        <sql>SELECT * FROM (SELECT gid, name, geom, (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM (SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) GROUP BY crime) i) AS stats FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%, %BOTTOM%, %RIGHT%, %TOP%, 4326))) t1
+</sql>
+        <escapeSql>false</escapeSql>
+        <keyColumn>gid</keyColumn>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+        <parameter>
+          <name>TOP</name>
+          <defaultValue>-1.0632324839782719</defaultValue>
+          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>RIGHT</name>
+          <defaultValue>53.955376989212425</defaultValue>
+          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>BOTTOM</name>
+          <defaultValue>-1.099281373138428</defaultValue>
+          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>LEFT</name>
+          <defaultValue>53.96317913911059</defaultValue>
+          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--285b7e02:14d4812a9f4:-7ffd</id>
+  </store>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

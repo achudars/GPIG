@@ -1,0 +1,252 @@
+                                                            July 1, 1991
+                                  NADGRD
+                              (Version 1.00)
+
+                             Distribution Copy
+
+                     *** UPDATE INFORMATION BEGINS ***
+
+This version of NADGRD, Version 1.01:
+(1)  adds the option of writing the ASCII graphics format output file in
+     meters instead of seconds of arc; and
+(2)  extends the default precision of the calculations.
+
+To update to Version 1.01 of NADGRD from Version 1.00, just copy the
+NADGRD.EXE file on this disk to the directory that contains the previous
+version.  No other changes are needed.
+
+While the default precision of the computations has been increased, it has
+little affect on the actual precision with which computations are made. 
+Therefore, users should see no changes in execution speed.
+
+The ASCII graphics output grids may now be obtained in meters.  Grid values
+are translated to meters before they are written to the output file.  The
+extensions for the new grid types are '.lam' and '.lom'.  This change
+allows users to translate the NADCON grids (or, more likely, subgrids) to
+meters before plotting.
+
+                      *** UPDATE INFORMATION ENDS ***
+
+PROGRAM DESCRIPTION:
+
+
+This program is intended to be used with the NADCON program.  The program
+has four functions:
+(1)  extract NADCON subgrids from larger NADCON grids;
+(2)  translate NADCON grid files to binary from the ASCII transfer format
+     and visa versa;
+(3)  translate NADCON grid files from binary or the ASCII transfer format
+     to the ASCII graphics format; and
+(4)  print information about NADCON grids to a file.
+
+The program NADCON reads binary grids that contain NAD 27 to NAD 83
+latitude and longitude shifts.  The first record in a grid file consists of
+header information.  All the other records consist of FORTRAN REAL*4
+numbers.  The grid files are unformatted and direct access.
+
+NADCON grids come in pairs and consist of the latitude and longitude shifts
+in seconds of arc between NAD 27 and NAD 83.  The names of the grids
+consist of the location of the grid (e.g., 'conus' or 'alaska') as the
+basename plus an extension.  The extension for the grid of latitude shifts
+is '.las' and the extension for the grid of longitude shifts is '.los'.
+NADCON asks only for the basename -- the extensions are added within the
+program.  This means that only files with the '.las' and '.los' extensions
+can be used by NADCON.
+
+NADGRD can be used to extract subgrids to be used with NADCON.  NADGRD asks
+for the basename for the new grids - the '.las' and '.los' extensions will
+be added to the basename when the output binary files are created.  NADGRD
+also asks for the minimum and maximum latitude and longitude for the region
+to be covered by new grids.  The values are entered in decimal degrees.
+NADGRD will buffer the region requested to the next whole degree plus 1
+degree, i.e., by at least one whole degree.
+
+Each pair of grids must contain a minimum number of degrees of longitude.
+The reason for this minimum is that to be read by NADCON, the extracted
+grid must have a logical record length of at least 96.  This is because the
+header record length is 96 bytes.  The exact number of degrees necessary
+depends on the differences (in degrees) between adjacent longitude grid
+points.  The minimum number of degrees of longitude is determined within
+NADGRD from the information given in the header records of the input data
+grids.  This minimum is printed as part of the request for the minimum and
+maximum longitudes for the new grids.
+
+For example, the CONUS files have a difference of 0.25 degree between
+adjacent grid points.  To get a record length of at least 96 bytes and to
+have the grid boundaries be even degrees, the difference between the
+minimum and maximum longitude for any subgrid must be at least 6 degrees.
+However, taking into account the buffering within NADGRD, the inputted
+(maximum-minimum) longitude difference must be at least 4 degrees.
+
+
+In order to use a subgrid with the NADCON program, it is necessary to
+create a file named 'AREA.PAR'.  This file will have in it information
+about the set of subgrids.  The AREA.PAR file must be in the same directory
+as the grid files; that is the same directory from which NADCON is
+executed.
+
+The AREA.PAR file may be created by any editor -- it is not an output of
+the NADGRD program.  The data in the AREA.PAR file have the following
+format:
+
+Columns 1-15 contain the name of the region or area.  This name may contain
+blanks or any other characters.  This name is used in some of the NADCON
+output formats to identify the grids used to obtain the transformation
+data.
+
+Columns 16-80 (the rest of the record) contain the base name of the grid
+files; that is, the '.las' and '.los' extensions are not included.  They
+are added by NADCON before the set of subgrid files is opened.  The
+AREA.PAR file may contain comments.  Comments are indicated by an '*' in
+column 1; blank records are also treated as comments.  Comment records are
+printed to the output but otherwise ignored.
+
+Another function of NADGRD is to translate NADCON grids between ASCII and
+binary formats.  The ASCII files are needed for portability.  The ASCII
+transfer format files are used when NADCON grids need to be transferred to
+computers that do not use the same binary format (this is the usual case).
+
+The first two records in each of the ASCII transfer files contain the
+header information.  The rest of the records in the files contain the
+shifts (either latitude or longitude) in ASCII.  They are formatted using
+the FORTRAN format of (6F12.6).  The extension for an ASCII transfer file
+of shifts in latitude is '.laa' and the extension for an ASCII transfer
+file of shifts in longitude is '.loa'.
+
+The translation of small files is quick on all machines.  However, the
+Alaska, Hawaii, and Conus files are very large and take longer.  On newer,
+faster machines (386's, mini's, etc) translating these files often takes
+several minutes.  On older, slower machines (XT's, AT's) the time is much
+longer -- as long as several hours.  However, once translated, the files
+should never need to be retranslated.
+
+The translation function of NADGRD can be combined with the extraction
+function.  For example, if you are extracting a subgrid from a set of
+binary NADCON grid files, you can request that the output grid files be in
+the ASCII transfer format.  Because the ASCII transfer format is used for
+transferring NADCON grids between different types of computers, each pair
+of grids must contain the same minimum number of degrees of longitude as
+would be necessary for binary format files.
+
+The third function of NADGRD is to create ASCII graphics output files from
+a set of either binary format or ASCII transfer format input grid files. 
+These files were specifically designed for use with the SURFER graphics
+program (a product of Golden Software, Inc., Golden CO).  For this reason,
+the first five records are header records with the following information. 
+The first record contains only the character string 'DSAA'. The second
+header record contains the number of columns and the number of rows in the
+ASCII graphics grids.  The third header record contains the minimum and
+maximum longitude in decimal degrees, positive east longitude.  The forth
+header record contains the minimum and maximum latitude in decimal degrees. 
+The fifth record contains the minimum and maximum shift in the ASCII
+graphics grids.  Note that the first four records in each of the pair of
+ASCII graphics grids will be identical.  Only the fifth record will differ.
+
+The rest of the records in the files contain the shifts (either latitude or
+longitude) in ASCII.  They are formatted using the FORTRAN format of
+(1024F12.6).  The extension for an ASCII graphics file of (seconds of arc)
+shifts in latitude is '.lag' and the extension for an ASCII graphics file
+of (second of arc) shifts in longitude is '.log'.  As mentioned in the
+update section, the latitude and longitudes shifts may now be written to
+the ASCII graphics files in meters.  The extension for an ASCII graphics
+file of (meter) shifts in latitude is '.lam'  and the extension for an
+ASCII graphics file of (meter) shifts in longitude is '.lom'.  The ASCII
+graphics format is an output format only in NADGRD - files in this format
+cannot be used as input.
+
+For the ASCII graphics output format files, there is no minimum number
+degrees of longitude between the minimum and maximum.  Also, the output
+files are not buffered, but are merely rounded to the next whole degree (if
+the requested minimums and maximums are not whole degrees).
+
+The principal use for ASCII graphics files is plotting the NAD 27 to NAD 83
+transformations in a given region.  SURFER can be used to display the
+gridded data as contour maps or as 3-D wire-frame figures.  These files can
+be easily modified with any editor for use with other graphics packages.
+
+The final function of NADGRD is to write an information file for a set of
+binary or ASCII transfer format grid files.  The information file will have
+an extension of '.inf'.  The file will contain all of the information in
+the header records of the latitude and longitude grid files.  It also will
+have the minimum and maximum latitudes and longitudes and the grid
+increment in decimal degrees.  Finally, it contains the minimum, maximum,
+average, and standard deviation of the average of the latitude and
+longitude shifts in both seconds of arc and in meters.
+
+Between the dotted lines is an example of an information file:
+
+.................................................................
+Files 'conus.las' and 'conus.los' are binary.
+
+From the header record(s): 
+Data Identification ='coord shift NAD27                                '
+Originating software ='min-curv'
+
+Number of columns =  241    Number of rows =  105
+
+Latitude:   minimum =     24.   maximum =     50.  increment =  0.25000
+Longitude:  minimum =     66.   maximum =    126.  increment =  0.25000
+
+                                SHIFT STATISTICS
+------------------------------------------------------------------------
+                      Latitude     Longitude     Latitude     Longitude
+                          (seconds of arc)             (meters)
+Minimum                 -0.814        -3.773      -25.152      -106.632
+Maximum                  1.658         5.149       51.023       105.417
+
+Average                  0.317         0.873        9.746        20.690
+Standard Deviation       0.509         1.977       15.691        48.372
+.................................................................
+
+To execute NADGRD, merely move to the directory containing NADGRD.EXE and
+type in NADGRD.  The first question that NADGRD asks, is whether the set of
+input grids is in binary or ASCII transfer format.  The second request is
+for basename for the set of input grids.  NADGRD will supply the extensions
+-- '.las' and .los' for binary grid files or '.laa' and '.loa' for ASCII
+transfer grid files.  The third question is:
+
+For the output files enter:
+    'A' for ASCII transfer format;
+    'B' for binary - NADCON data file format;
+    'G' for ASCII graphics format - There are five header information
+        records, and the record lengths can be VERY large;
+    'I' for input file information written to a single output file;
+(Default is B).
+If 'A' is chosen, the output set of grid files will be in the ASCII
+transfer format.  If 'B' is chosen, the output set of grid will be in the
+binary format and can be read by NADCON.  If 'G' is chosen, the output set
+of grids will be in the ASCII graphics format and can be used by graphics
+software packages such as SURFER.  If 'I' is chosen, an information file is
+written about the contents of the input set of grids.
+
+Next the basename for the output file(s) is requested. NADGRD will supply
+the extensions - '.las' and .los' for binary grid files, '.laa' and '.loa'
+for ASCII transfer grid files, '.lag' and '.log' for ASCII graphics, or
+'.inf' for an information file.
+
+If the output is not an information file, NADGRD will next ask for the
+minimum and maximum latitudes and longitudes for region covered by the new
+grids.  The defaults for these values are the minimum and maximum latitude
+and longitudes of the input grid files.  The values given will then be
+buffered to the next whole degree plus 1 degree for binary and ASCII
+transfer output files or to the next whole degree for ASCII graphics output
+files.  The buffered values are written to the screen and you are asked if
+they are correct.  This will allow you to change one or more of the values
+if you wish.
+
+NADGRD next calculates the maximum and minimum NAD 27 to NAD 83 latitude
+and longitude shift values for the new grids.  These are written to the
+screen and are also written to the header records of the ASCII graphics
+format or to the information file.
+
+Finally, NADGRD creates the new grids.  These last two steps can each take
+several minutes depending on the machine used and the size of the output
+grids.  
+
+  
+  
+  
+
+  
+  
+

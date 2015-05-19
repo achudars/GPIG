@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="keywords" content="NADCON, NGS PC software">
+<title>PC Software Download - NADCON</title>
+<LINK REL="stylesheet" TYPE="text/css" HREF="/CSS/main.css" TITLE="Default">
+</head><body bgcolor="White" text="#333399" link="Blue" vlink="Navy" alink=
+   "Purple">
+<table border="0" cellpadding="0" cellspacing="0" width="640" summary="Table is PC 
+Download Page for NADCON program">
+  <tr>
+  	<td valign="top" width="120" bgcolor="99CCFF"> 
+      <!--#include virtual="/SSI/pcleftbar.shtml" --></td>
+    <td> 
+	<table width="520" border="0" cellspacing="0" cellpadding="0" summary="Table 
+	includes banner, text describing program and files for downloading, and 
+	business card with contact information.">
+	<tr>
+	<td>
+      <!--#set var="TITLE" value="PC Software Download - NADCON" -->
+      <!--#include virtual="/SSI/pcminibanner.shtml" -->
+    </td></tr>
+    <tr><td><table border="0" cellspading="0" cellpadding="10"><tr>
+                <td> 
+                  <h3>NADCON - Version 2.1 </h3>
+                  <blockquote> [February, 2003]</blockquote>
+                  <br>
+                  <h3>Description</h3>
+Transforms geographic coordinates between the NAD 27, Old Hawaiian, 
+Puerto Rico, or Alaska Island datums and NAD 83 values. Can be used for America 
+Samoa as well, but PLEASE READ THE SAMOA README FILE FIRST. Recommended for 
+converting coordinate data for mapping, low-accuracy surveying, or navigation. 
+  <ul>
+     <li>View the <a href="/PUBS_LIB/NGS50.pdf">NADCON manual</a>. [pdf format]</li><br>
+     <li>View the <a href="Readme.htm">README</a> file.</li><br>
+     <li>Download a <a href="/PC_PROD/NADCON/NADCON.zip">ZIP'ed</a> archive of 
+      the NADCON executable, all grid files, and user's guides. [1.95 MB].</li><br> 
+     <li>Download a <a href="/PC_PROD/NADCON/GRIDS.zip">ZIP'ed</a> archive of 
+      all the grid files. [1.83 MB].</li><br>
+     <li>Download a <a href="/PC_PROD/NADCON/source/SOURCE.zip">ZIP'ed</a> 
+      archive of the NADCON FORTRAN source code and documents. [51.3 KB].</li>
+  </ul>
+<p>An on-line interactive version is also available from the <a href="/TOOLS/Nadcon/Nadcon.html">Geodetic Tool Kit</a>.
+<p>NOAA's Coastal Services Center offers a <a href=
+"http://www.csc.noaa.gov/products/shapenadcon/" target="_blank">windows utility</a> 
+that does NADCON conversions using shapefiles as input and output.</font>
+<br><br>
+  <a href="/PC_PROD/disclaimer.shtml" target="_blank">Disclaimer</a> 
+                </td>
+              </tr>
+    <tr><td>
+	<!--#set var="EMAIL_SUBJECT" value="PC%20Software%20Download%20-%20NADCON" -->
+      <!--#include virtual="/SSI/narrowfooter.shtml" -->
+    </td></tr></table>
+	</td></tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>			 
