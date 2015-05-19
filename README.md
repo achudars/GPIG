@@ -56,6 +56,18 @@ Assuming everything works, opening your browser to `http://localhost:9080` shoul
 
 ![Image of basic application](/Images/Basic Incident Points.png)
 
+### Neighbourhoods Application
+
+Iteration on the basic application, draws areas/neighbourhoods based on post codes and colours them based on the number of incidents contained within each. Run similarly to the basic application
+
+```bash
+suite-sdk debug neighbourhoodstats
+```
+
+This application assumes GeoServer is using the shared data directory and is connected to a properly configured PostGIS server. Assuming everything works, opening your browser to `http://localhost:9080` should display an application showing you crime around York.
+
+![Image of neighbourhood stats application](/Images/Neighbourhood Stats Heatmap.png)
+
 ### Things to note
 
 * Due to the large number of incidents in the database, make sure your application is always zoom-limited, that way the application can never be overwhelmed as only a limited subset of incidents will be visible at any point.
