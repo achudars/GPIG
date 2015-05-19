@@ -9,9 +9,11 @@ var url = '/geoserver/ows?';
 var featurePrefix = 'crime';
 var featureType = 'incidents';
 var featureType2 = 'neighbourhoods';
+var featureType3 = 'incident_types';
 var featureNS = 'http://census.gov';
 var layerTitle = 'Incidents';
 var layerTitle2 = 'Neighbourhoods';
+var layerTitle3 = 'Incident Types';
 
 // var srsName = 'EPSG:900913';
 // var geometryName = 'the_geom';
@@ -53,6 +55,12 @@ var wmsSource = new ol.source.TileWMS({
 var wmsSource2 = new ol.source.TileWMS({
   url: url,
   params: {'LAYERS': featurePrefix + ':' + featureType2, 'TILED': true, STYLE:'line'},
+  serverType: 'geoserver'
+});
+
+var wmsSource3 = new ol.source.TileWMS({
+  url: url,
+  params: {'LAYERS': featurePrefix + ':' + featureType3, 'TILED': true, STYLE:'point_types'},
   serverType: 'geoserver'
 });
 
@@ -117,6 +125,10 @@ var map = new ol.Map({
        new ol.layer.Tile({
       title: layerTitle,
       source: wmsSource
+    }),
+       new ol.layer.Tile({
+      title: layerTitle3,
+      source: wmsSource3
     })
    
   ],
@@ -216,4 +228,44 @@ var map = new ol.Map({
                popup.show();
   //var html ;
   //return html;
- } 
+ }
+ 
+ 
+ function ol3_legend(e) {
+    var options = e || {};
+    var wmsVersion = options.wmsVersion || '1.1.1';
+    var format = options.format || 'image/png';
+    var legendP = document.createElement('p');
+    legendP.innerHTML = 'Legend:';
+    var legendDiv = document.createElement('div');
+    legendDiv.className = options.class + ' ol-unselectable';
+    legendDiv.appendChild(legendP);
+    var layers = options.map.getLayers().getArray();
+    for (var i = 0; i < layers.length; i++) {
+        if (layers[i] instanceof ol.layer.Group){
+            var layersFromGroup = layers[i].getLayers().getArray();
+            for (var j=0; i < layersFromGroup.length; j++){
+                try {
+                    var url = layersFromGroup[j].getSource().getUrls()[0];
+                } catch (err) {
+                    var url = layersFromGroup[j].getSource().getUrl();
+                }
+                var legendImg = document.createElement('img');
+                legendImg.src = url + '?REQUEST=GetLegendGraphic&sld_version=1.0.0&layer=' + layersFromGroup[j].getSource().getParams().layers + '&format=' + format;
+                legendDiv.appendChild(legendImg);
+            }
+        }
+    }
+     ol.control.Control.call(this, {
+        element: legendDiv
+    });
+   
+}
+
+
+    
+ol.inherits(ol3_legend, ol.control.Control);
+
+map.addControl(new ol3_legend({
+    map: map,
+    class: 'ol_legend' }));
