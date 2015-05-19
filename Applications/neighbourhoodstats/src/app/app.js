@@ -111,13 +111,13 @@ var map = new ol.Map({
         // Custom sources
         new ol.layer.Tile({
             title: incidentsTitle,
-            source: incidentsSource
+            source: incidentsSource,
+            visible: false
         }),
 
         new ol.layer.Image({
             source: neighbourhoodsStatsSource,
-            title: neighbourhoodsStatsTitle,
-            opacity: 0.6
+            title: neighbourhoodsStatsTitle
         })
     ],
 
