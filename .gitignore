@@ -1,0 +1,5 @@
+.DS_Store
+
+# Ignore GeoServer logs/temp
+GeoServerData/logs/*
+GeoServerData/temp/*
