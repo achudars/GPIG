@@ -1,0 +1,15 @@
+<layer>
+  <name>incident_types</name>
+  <id>LayerInfoImpl-23cc35b6:14d626644d5:-7fe9</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-23cc35b6:14d626644d5:-7fe4</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-23cc35b6:14d626644d5:-7fea</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
