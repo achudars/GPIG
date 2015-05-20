@@ -6,7 +6,7 @@
     <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
   </namespace>
   <title>Neighbourhoods Stats</title>
-  <abstract>Grouping crime stats for neighbourhoods contained within a bounding box that can be defined using the TOP, LEFT, BOTTOM, RIGTH variables</abstract>
+  <abstract>Grouping crime stats for neighbourhoods contained within a bounding box that can be defined using the LEFT,RIGHT,TOP,BOTTOM,SRID variables (that are used to construct an envelope).</abstract>
   <keywords>
     <string>Neighbourhood Stats</string>
     <string>features</string>
@@ -52,7 +52,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>Neighbourhood Stats</name>
-        <sql>SELECT * FROM (SELECT gid, name, geom, (SELECT COUNT(*) FROM incidents i WHERE ST_Within(i.geom, n.geom)) AS crimecount, (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM (SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) GROUP BY crime) i) AS stats FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%, %BOTTOM%, %RIGHT%, %TOP%, 4326))) t1
+        <sql>SELECT * FROM (SELECT gid, name, geom, (SELECT COUNT(*) FROM incidents i WHERE ST_Within(i.geom, n.geom)) AS crimecount, (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM (SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) GROUP BY crime) i) AS stats FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%,%BOTTOM%,%RIGHT%,%TOP%,%SRID%))) t1
 </sql>
         <escapeSql>false</escapeSql>
         <keyColumn>gid</keyColumn>
@@ -62,24 +62,29 @@
           <srid>4326</srid>
         </geometry>
         <parameter>
+          <name>SRID</name>
+          <defaultValue>4326</defaultValue>
+          <regexpValidator>^[A-Z:0-9]+$</regexpValidator>
+        </parameter>
+        <parameter>
           <name>TOP</name>
-          <defaultValue>-1.0632324839782719</defaultValue>
-          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[+\-0-9\.]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>RIGHT</name>
-          <defaultValue>53.955376989212425</defaultValue>
-          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[+\-0-9\.]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>BOTTOM</name>
-          <defaultValue>-1.099281373138428</defaultValue>
-          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[+\-0-9\.]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>LEFT</name>
-          <defaultValue>53.96317913911059</defaultValue>
-          <regexpValidator>^[\-]{0,1}[0-9]+\.[0-9]+$</regexpValidator>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[+\-0-9\.]+$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>

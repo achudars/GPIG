@@ -60,7 +60,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             return value - (worlds * 360);
         }
 
-        var viewparams = 'left:' + wrapLon(bottomLeft[0]) + ';right:' + wrapLon(topRight[0]) + ';top:' + topRight[1] + ';bottom:' + bottomLeft[1];
+        var viewparams = 'LEFT:' + wrapLon(bottomLeft[0]) + ';RIGHT:' + wrapLon(topRight[0]) + ';TOP:' + topRight[1] + ';BOTTOM:' + bottomLeft[1] + ';SRID:4326';
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
