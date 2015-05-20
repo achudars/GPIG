@@ -26,6 +26,8 @@ Assuming the database restores without problems, you should be able to setup the
 
 ### Migrating to a shared data directory (GeoServer)
 
+**This won't work, instead just copy over the `styles` and `workspaces` folders from the repository to your local data directory. Make sure the resulting folders have appropriate permissions so that your webserver can access it.*
+
 In order to share styles and track GeoServer configuration in the repository, we need to migrate the data directory to the one located in the repository. During this process you may lose some of the changes you've made locally, which you need to manually copy over later from your original local data directory.
 
 The shared data directory is located in the `GeoServerData` directory in the root of this repository. In order for GeoServer to start using this, you need to follow the appropriate guide in the user manual to change `GEOSERVER_DATA_DIR` variable to point to this new location:
