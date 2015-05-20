@@ -30,7 +30,7 @@
     <entry key="fetch size">50000</entry>
     <entry key="preparedStatements">false</entry>
     <entry key="Estimated extends">true</entry>
-    <entry key="user">henrinormak</entry>
+    <entry key="user">postgres</entry>
     <entry key="min connections">1</entry>
   </connectionParameters>
   <__default>false</__default>
