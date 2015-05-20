@@ -9,9 +9,6 @@
 var url = '/geoserver/ows?';
 var featurePrefix = 'crime';
 
-var incidentsType = 'incidents';
-var incidentsTitle = 'Incidents';
-
 var neighbourhoodsStatsType = 'neighbourhoods-stats';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Crime Stats';
 
@@ -39,17 +36,54 @@ var popup = new app.Popup({
 });
 
 // Sources for the different layers
-var incidentsSource = new ol.source.TileWMS({
-    url: url,
-    serverType: 'geoserver',
-    params: {'LAYERS': featurePrefix + ':' + incidentsType, 'TILED': true}
-});
+// var neighbourhoodsStatsSource = new ol.source.ImageWMS({
+//     url: url,
+//     serverType: 'geoserver',
+//     params: {'LAYERS': featurePrefix + ':' + neighbourhoodsStatsType}
+// });
 
-var neighbourhoodsStatsSource = new ol.source.ImageWMS({
-    url: url,
-    serverType: 'geoserver',
-    params: {'LAYERS': featurePrefix + ':' + neighbourhoodsStatsType}
-})
+// WFS source (vector)
+var neighbourhoodsStatsSource = new ol.source.ServerVector({
+    format: new ol.format.WFS({
+        featureNS: 'http://localhost',
+        featureType: neighbourhoodsStatsType
+    }),
+
+    loader: function(extent, resolution, projection) {
+        // Transform the extent to view params for the request
+        var transformer = ol.proj.getTransform(projection, 'EPSG:4326');
+        var transformed = ol.extent.applyTransform(extent, transformer);
+        var bottomLeft = ol.extent.getBottomLeft(transformed);
+        var topRight = ol.extent.getTopRight(transformed);
+
+        function wrapLon(value) {
+            var worlds = Math.floor((value + 180) / 360);
+            return value - (worlds * 360);
+        }
+
+        var viewparams = 'left:' + wrapLon(bottomLeft[0]) + ';right:' + wrapLon(topRight[0]) + ';top:' + topRight[1] + ';bottom:' + bottomLeft[1];
+
+        // Create the URL for the reqeust
+        var url = '/geoserver/wfs?' +
+            'service=WFS&request=GetFeature&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
+            'srsname='+ projection.code_ + '&' +
+            'viewparams=' + viewparams;
+
+        $.ajax({
+            url: url
+        })
+        .done(function(response) {
+            neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
+        });
+    },
+
+    strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
+        maxZoom: zoom.max
+    })),
+
+    projection: 'EPSG:3857'
+});
 
 // Create the OL map
 // Add a layer switcher to the map with two groups:
@@ -109,15 +143,10 @@ var map = new ol.Map({
         }),
 
         // Custom sources
-        new ol.layer.Tile({
-            title: incidentsTitle,
-            source: incidentsSource,
-            visible: false
-        }),
-
-        new ol.layer.Image({
+        new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
-            title: neighbourhoodsStatsTitle
+            title: neighbourhoodsStatsTitle,
+            style: neighbourhoodStyle
         })
     ],
 
@@ -130,42 +159,115 @@ var map = new ol.Map({
     })
 });
 
+// Styling function for neighbourhoods
+var neighbourhoodStyleCache = {};
+function neighbourhoodStyle(feature, resolution) {
+    // Determine the key for this feature
+    var count = parseInt(feature.get('crimecount'));
+    var key;
 
-// Track boundng box changes, in order to correctly update view params on stats layer
-map.on("moveend", function(evt) {
-    function wrapLon(value) {
-        var worlds = Math.floor((value + 180) / 360);
-        return value - (worlds * 360);
+    if (count < 100) {
+        key = 'very low';
+    } else if (count < 200) {
+        key = 'low';
+    } else if (count < 500) {
+        key = 'medium';
+    } else if (count < 1000) {
+        key = 'high';
+    } else {
+        key = 'very high';
     }
 
-    var map = evt.map;
-    var extent = map.getView().calculateExtent(map.getSize());
-    var bottomLeft = ol.proj.transform(ol.extent.getBottomLeft(extent), 'EPSG:3857', 'EPSG:4326');
-    var topRight = ol.proj.transform(ol.extent.getTopRight(extent), 'EPSG:3857', 'EPSG:4326');
+    var styles = neighbourhoodStyleCache[key];
+    if (styles) {
+        styles = styles.slice(0);
 
-    // Update the view params of the stats layer
-    neighbourhoodsStatsSource.updateParams({
-        'VIEWPARAMS': 'left:' + wrapLon(bottomLeft[0]) + ';right:' + wrapLon(topRight[0]) + ';top:' + topRight[1] + ';bottom:' + bottomLeft[1] + ';'
-    });
-});
+        // Adjust the text (otherwise the cached value is used, which is false)
+        styles.forEach(function(style) {
+            var text = style.getText();
+            if (text) {
+                text.setText(feature.get("name"));
+            }
+        });
+
+        return styles;
+    }
+
+    // Shared styles
+    var styles = [
+        // Everybody has a stroke and a text fill style
+        new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0,0,0,0.5)',
+                width: 1
+            }),
+
+            text: new ol.style.Text({
+                font: '14px Helvetica, sans-serif',
+                text: feature.get("name"),
+                fill: new ol.style.Fill({
+                    color: "#000"
+                }),
+                stroke: new ol.style.Stroke({
+                    color: "#FFF",
+                    width: 3
+                })
+            })
+        })
+    ]
+
+    // Dynamic styles
+    var count = parseInt(feature.get("crimecount"));
+    if (key == 'very low') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(115,206,255,0.35)'
+            })
+        }));
+    } else if (key == 'low') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(187,255,255,0.35)'
+            })
+        }));
+    } else if (key == 'medium') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,243,101,0.35)'
+            })
+        }));
+    } else if (key == 'high') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,155,30,0.35)'
+            })
+        }));
+    } else {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,22,4,0.35)'
+            })
+        }));
+    }
+
+    neighbourhoodStyleCache[key] = styles;
+    return styles;
+}
 
 // Capture single clicks (for both incidents and stats)
 map.on('singleclick', function(evt) {
-    var infoURL = neighbourhoodsStatsSource.getGetFeatureInfoUrl(evt.coordinate, map.getView().getResolution(), map.getView().getProjection(), {'INFO_FORMAT': infoFormat});
+    // Vector source has all the features available directly, perfect!
+    var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
 
-    if (infoURL) {
-        $.getJSON(infoURL, function(data){
-            if (data.features && data.features.length > 0) {
-                var feature = data.features[0];
-                var stats = JSON.parse(feature.properties.stats);
+    if (features.length > 0) {
+        var feature = features[0];
+        var stats = JSON.parse(feature.get("stats"));
 
-                // TODO: Stylise the stats JSON into a nice popup content HTML
-                if (stats) {
-                    popup.setPosition(evt.coordinate);
-                    popup.setContent(JSON.stringify(stats));
-                    popup.show();
-                }
-            }
-        });
+        // TODO: Stylise the stats JSON into a nice popup content HTML
+        if (stats) {
+            popup.setPosition(evt.coordinate);
+            popup.setContent(JSON.stringify(stats));
+            popup.show();
+        }
     }
 });
