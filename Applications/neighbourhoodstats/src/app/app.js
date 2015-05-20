@@ -51,8 +51,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
-        var transformer = ol.proj.getTransform(projection, 'EPSG:4326');
-        var transformed = ol.extent.applyTransform(extent, transformer);
+        var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
         var bottomLeft = ol.extent.getBottomLeft(transformed);
         var topRight = ol.extent.getTopRight(transformed);
 

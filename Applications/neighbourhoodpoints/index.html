@@ -37,7 +37,6 @@
         overflow-y: auto;
       }
     </style>
-    <script src="src/openlayers/OpenLayers.js"></script>
     <script src="src/ol3/ol-debug.js"></script>
     <script src="src/jquery/jquery.js"></script>
     <script src="src/jquery/jquery-ui-1.11.4/jquery-ui.min.js"></script>
@@ -66,14 +65,14 @@
       </div><!--/.navbar-collapse -->
     </div>
     <div id ="ui-toolbox">
-        
+
         <div class="filter">
-            <label>Choose types of crime:</label><br/>    
+            <label>Choose types of crime:</label><br/>
             <div class="filterDiv">
-                <input type="checkbox" name="crimeType" value="anti-social-behaviour" checked> Antisocial Behaviour <br/> 
+                <input type="checkbox" name="crimeType" value="anti-social-behaviour" checked> Antisocial Behaviour <br/>
                 <input type="checkbox" name="crimeType" value="bicycle-theft" checked> Bicycle-Theft<br/>
                 <input type="checkbox" name="crimeType" value="burglary" checked> Burglary<br/>
-                <input type="checkbox" name="crimeType" value="criminal-damage-arson" checked> Criminal Damage - Arson                       
+                <input type="checkbox" name="crimeType" value="criminal-damage-arson" checked> Criminal Damage - Arson
             </div>
             <div class="filterDiv">
                 <input type="checkbox" name="crimeType" value="drugs" checked> Drugs<br/>
@@ -81,17 +80,17 @@
                 <input type="checkbox" name="crimeType" value="other-theft" checked> Other theft <br/>
                 <input type="checkbox" name="crimeType" value="public-order" checked> Public Order
             </div>
-            <div class="filterDiv">     
+            <div class="filterDiv">
                 <input type="checkbox" name="crimeType" value="possession-of-weapons" checked> Possession of Weapons<br/>
                 <input type="checkbox" name="crimeType" value="robbery" checked> Robbery<br/>
-                <input type="checkbox" name="crimeType" value="shoplifting" checked> Shoplifting  <br/>       
-                <input type="checkbox" name="crimeType" value="theft-from-the-person" checked> Theft From The Person 
+                <input type="checkbox" name="crimeType" value="shoplifting" checked> Shoplifting  <br/>
+                <input type="checkbox" name="crimeType" value="theft-from-the-person" checked> Theft From The Person
             </div>
-            <div class="filterDiv">             
+            <div class="filterDiv">
                 <input type="checkbox" name="crimeType" value="vehicle-crime" checked> Vehicle Crime <br/>
-                <input type="checkbox" name="crimeType" value="violent-crime" checked> Violent Crimes 
+                <input type="checkbox" name="crimeType" value="violent-crime" checked> Violent Crimes
             </div>
-            <div class="filterDiv"> 
+            <div class="filterDiv">
                 <button class="btns" id="selectAll">Select All</button><br/><br/>
                 <button class="btns" id="deselectAll">Deselect All</button>
             </div>
@@ -101,11 +100,11 @@
             <label>Choose dates of crimes:</label><br/>
             <div class="filterDiv">
                 <span class="timeSpan">From date:</span> <input type="text" id="fromDate" class="datepickers" value="01-11-2013"> <br/><br/>
-                <span class="timeSpan">To date: </span><input type="text" id="toDate" class="datepickers" value="03-06-2015">            
+                <span class="timeSpan">To date: </span><input type="text" id="toDate" class="datepickers" value="03-06-2015">
             </div>
         </div>
         <div class="line"></div>
-        
+
     </div>
     <div id="map">
       <div id="popup" class="ol-popup">
