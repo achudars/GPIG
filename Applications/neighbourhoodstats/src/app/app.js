@@ -35,14 +35,7 @@ var popup = new app.Popup({
     autoPan: true
 });
 
-// Sources for the different layers
-// var neighbourhoodsStatsSource = new ol.source.ImageWMS({
-//     url: url,
-//     serverType: 'geoserver',
-//     params: {'LAYERS': featurePrefix + ':' + neighbourhoodsStatsType}
-// });
-
-// WFS source (vector)
+// Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
         featureNS: 'http://localhost',
@@ -81,7 +74,6 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         maxZoom: zoom.max
     })),
 
-    projection: 'EPSG:3857'
 });
 
 // Create the OL map
@@ -142,6 +134,7 @@ var map = new ol.Map({
         }),
 
         // Custom sources
+        // Neighbourhoods (Stats)
         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
