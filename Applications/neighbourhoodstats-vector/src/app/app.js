@@ -146,66 +146,7 @@ var map = new ol.Map({
         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
-            style: function(feature, resolution) {
-                // Shared styles
-                var styles = [
-                    // Everybody has a stroke and a text fill style
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: 'rgba(0,0,0,0.5)',
-                            width: 1
-                        }),
-
-                        text: new ol.style.Text({
-                            font: '14px Helvetica, sans-serif',
-                            text: feature.get("name"),
-                            fill: new ol.style.Fill({
-                                color: "#000"
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: "#FFF",
-                                width: 3
-                            })
-                        })
-                    })
-                ]
-
-                // Dynamic styles
-                var count = parseInt(feature.get("crimecount"));
-                if (count < 100) {
-                    styles.push(new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'rgba(115,206,255,0.35)'
-                        })
-                    }));
-                } else if (count < 200) {
-                    styles.push(new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'rgba(187,255,255,0.35)'
-                        })
-                    }));
-                } else if (count < 500) {
-                    styles.push(new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'rgba(255,243,101,0.35)'
-                        })
-                    }));
-                } else if (count < 1000) {
-                    styles.push(new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'rgba(255,155,30,0.35)'
-                        })
-                    }));
-                } else {
-                    styles.push(new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'rgba(255,22,4,0.35)'
-                        })
-                    }));
-                }
-
-                return styles;
-            }
+            style: neighbourhoodStyle
         })
     ],
 
@@ -217,6 +158,101 @@ var map = new ol.Map({
         minZoom: zoom.min
     })
 });
+
+// Styling function for neighbourhoods
+var neighbourhoodStyleCache = {};
+function neighbourhoodStyle(feature, resolution) {
+    // Determine the key for this feature
+    var count = parseInt(feature.get('crimecount'));
+    var key;
+
+    if (count < 100) {
+        key = 'very low';
+    } else if (count < 200) {
+        key = 'low';
+    } else if (count < 500) {
+        key = 'medium';
+    } else if (count < 1000) {
+        key = 'high';
+    } else {
+        key = 'very high';
+    }
+
+    var styles = neighbourhoodStyleCache[key];
+    if (styles) {
+        styles = styles.slice(0);
+
+        // Adjust the text (otherwise the cached value is used, which is false)
+        styles.forEach(function(style) {
+            var text = style.getText();
+            if (text) {
+                text.setText(feature.get("name"));
+            }
+        });
+
+        return styles;
+    }
+
+    // Shared styles
+    var styles = [
+        // Everybody has a stroke and a text fill style
+        new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0,0,0,0.5)',
+                width: 1
+            }),
+
+            text: new ol.style.Text({
+                font: '14px Helvetica, sans-serif',
+                text: feature.get("name"),
+                fill: new ol.style.Fill({
+                    color: "#000"
+                }),
+                stroke: new ol.style.Stroke({
+                    color: "#FFF",
+                    width: 3
+                })
+            })
+        })
+    ]
+
+    // Dynamic styles
+    var count = parseInt(feature.get("crimecount"));
+    if (key == 'very low') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(115,206,255,0.35)'
+            })
+        }));
+    } else if (key == 'low') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(187,255,255,0.35)'
+            })
+        }));
+    } else if (key == 'medium') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,243,101,0.35)'
+            })
+        }));
+    } else if (key == 'high') {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,155,30,0.35)'
+            })
+        }));
+    } else {
+        styles.push(new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,22,4,0.35)'
+            })
+        }));
+    }
+
+    neighbourhoodStyleCache[key] = styles;
+    return styles;
+}
 
 // Capture single clicks (for both incidents and stats)
 map.on('singleclick', function(evt) {
