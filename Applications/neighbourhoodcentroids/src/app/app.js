@@ -48,15 +48,9 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var bottomLeft = ol.extent.getBottomLeft(transformed);
-        var topRight = ol.extent.getTopRight(transformed);
+        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
-        function wrapLon(value) {
-            var worlds = Math.floor((value + 180) / 360);
-            return value - (worlds * 360);
-        }
-
-        var viewparams = 'LEFT:' + wrapLon(bottomLeft[0]) + ';RIGHT:' + wrapLon(topRight[0]) + ';TOP:' + topRight[1] + ';BOTTOM:' + bottomLeft[1] + ';SRID:4326';
+        // TODO: Add filters to the viewparams
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
@@ -66,7 +60,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: url
+            url: encodeURI(url)
         })
         .done(function(response) {
             neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
@@ -87,15 +81,9 @@ var centroidsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var bottomLeft = ol.extent.getBottomLeft(transformed);
-        var topRight = ol.extent.getTopRight(transformed);
+        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
-        function wrapLon(value) {
-            var worlds = Math.floor((value + 180) / 360);
-            return value - (worlds * 360);
-        }
-
-        var viewparams = 'LEFT:' + wrapLon(bottomLeft[0]) + ';RIGHT:' + wrapLon(topRight[0]) + ';TOP:' + topRight[1] + ';BOTTOM:' + bottomLeft[1] + ';SRID:4326';
+        // TODO: Add filters to the viewparams
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
@@ -105,7 +93,7 @@ var centroidsSource = new ol.source.ServerVector({
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: url
+            url: encodeURI(url)
         })
         .done(function(response) {
             centroidsSource.addFeatures(centroidsSource.readFeatures(response));
