@@ -1,9 +1,9 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-23cc35b6:14d626644d5:-7fea</id>
+  <id>FeatureTypeInfoImpl--56518d1c:14d73aca643:-7ff4</id>
   <name>incident_types</name>
   <nativeName>incidents</nativeName>
   <namespace>
-    <id>NamespaceInfoImpl-23cc35b6:14d626644d5:-7ffc</id>
+    <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
   </namespace>
   <title>incidents</title>
   <keywords>
@@ -25,28 +25,17 @@
     <maxx>1.79721510410309</maxx>
     <miny>49.9955863952637</miny>
     <maxy>56.1504707336426</maxy>
-    <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
     <minx>-6.44138145446777</minx>
     <maxx>1.79721510410309</maxx>
     <miny>49.9955863952637</miny>
     <maxy>56.1504707336426</maxy>
-    <crs>GEOGCS[&quot;WGS84(DD)&quot;, 
-  DATUM[&quot;WGS84&quot;, 
-    SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
-  PRIMEM[&quot;Greenwich&quot;, 0.0], 
-  UNIT[&quot;degree&quot;, 0.017453292519943295], 
-  AXIS[&quot;Geodetic longitude&quot;, EAST], 
-  AXIS[&quot;Geodetic latitude&quot;, NORTH]]</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
-  <metadata>
-    <entry key="cachingEnabled">false</entry>
-  </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl--48de3701:14d5831a2e7:-7ffe</id>
+    <id>DataStoreInfoImpl--285b7e02:14d4812a9f4:-7ffd</id>
   </store>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
