@@ -6,7 +6,12 @@
     <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
   </namespace>
   <title>Neighbourhood Centroids</title>
-  <abstract>Weighted centroids, based on incidents located within each neighbourhood. Also returns the total weight of all the incidents within the neighbourhood.</abstract>
+  <abstract>Getting centroids for neighbourhoods incidents, within an area defined by the AREA variable (which should be formatted as BBOX).&#xd;
+&#xd;
+In addition, the view supports the following filters (as view parameters):&#xd;
+STARTDATE - Start date (YYYY-MM-DD), inclusive&#xd;
+ENDDATE - End date (YYYY-MM-DD), inclusive&#xd;
+CRIME - Comma separated list of crime types (&apos;type&apos;, &apos;type&apos;)</abstract>
   <keywords>
     <string>features</string>
     <string>Neighbourhood Centroids</string>
@@ -47,7 +52,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>Neighbourhood Centroids</name>
-        <sql>SELECT n.gid AS gid, n.name AS name, ST_Centroid(ST_Union(i.geom)) AS geom, SUM(i.weight) AS weight FROM incidents i, neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%LEFT%, %BOTTOM%, %RIGHT%, %TOP%, %SRID%)) AND ST_WITHIN(i.geom, n.geom) GROUP BY n.gid
+        <sql>SELECT n.gid AS gid, n.name AS name, ST_Centroid(ST_Union(i.geom)) AS geom, SUM(i.weight) AS weight FROM incidents i, neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%AREA%)) AND ST_WITHIN(i.geom, n.geom) AND i.date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY n.gid
 </sql>
         <escapeSql>false</escapeSql>
         <keyColumn>gid</keyColumn>
@@ -57,29 +62,24 @@
           <srid>4326</srid>
         </geometry>
         <parameter>
-          <name>SRID</name>
-          <defaultValue>4326</defaultValue>
-          <regexpValidator>^[A-Z:0-9]+$</regexpValidator>
+          <name>AREA</name>
+          <defaultValue>-180,-90,180,90,4326</defaultValue>
+          <regexpValidator>^([\.\-+0-9]+(\\)*?,\s*){4}[A-Z:0-9]+$</regexpValidator>
         </parameter>
         <parameter>
-          <name>TOP</name>
-          <defaultValue>53.96317913911059</defaultValue>
-          <regexpValidator>^[\.0-9\-]+$</regexpValidator>
+          <name>CRIME</name>
+          <defaultValue>crime</defaultValue>
+          <regexpValidator>^(((&apos;[\w\s\d]*&apos;),\s*)*(&apos;[\w\s\d]*&apos;))|(ALL)$</regexpValidator>
         </parameter>
         <parameter>
-          <name>RIGHT</name>
-          <defaultValue>-1.0632324839782719</defaultValue>
-          <regexpValidator>^[\.0-9\-]+$</regexpValidator>
+          <name>ENDDATE</name>
+          <defaultValue>2100-01-01</defaultValue>
+          <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
         </parameter>
         <parameter>
-          <name>BOTTOM</name>
-          <defaultValue>53.955376989212425</defaultValue>
-          <regexpValidator>^[\.0-9\-]+$</regexpValidator>
-        </parameter>
-        <parameter>
-          <name>LEFT</name>
-          <defaultValue>-1.099281373138428</defaultValue>
-          <regexpValidator>^[\.0-9\-]+$</regexpValidator>
+          <name>STARTDATE</name>
+          <defaultValue>1970-01-01</defaultValue>
+          <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>
