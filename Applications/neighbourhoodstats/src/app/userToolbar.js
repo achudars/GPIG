@@ -49,7 +49,7 @@ function applyFilters(){
         }); 
     }
     
-    if (typeof neighbourhoodsStatsSource !== 'undefined') {
+    if (typeof neighbourhoodsStatsSource !== 'undefined' || typeof centroidsSource !== 'undefined' ) {
         filterValue = dateFilterSQL(fromDate,toDate);
         filterValue += crimeTypeFilterSQL();
         neighbourhoodsStatsSource.clear(true);

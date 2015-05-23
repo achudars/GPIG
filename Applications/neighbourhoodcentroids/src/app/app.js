@@ -75,6 +75,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     }))
 });
 
+filterValue = "";
 var centroidsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
         featureNS: 'http://localhost',
@@ -84,7 +85,7 @@ var centroidsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = filterValue+'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
         // TODO: Add filters to the viewparams
 
