@@ -49,7 +49,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
         var viewparams = filterValue+"AREA:" + transformed.join('\\\,') + '\\\,4326';
-        
+
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
@@ -148,7 +148,6 @@ var map = new ol.Map({
 });
 
 // Styling function for neighbourhoods
-var neighbourhoodStyleCache = {};
 function neighbourhoodStyle(feature, resolution) {
     // Determine the key for this feature
     var count = parseInt(feature.get('crimecount'));
@@ -164,21 +163,6 @@ function neighbourhoodStyle(feature, resolution) {
         key = 'high';
     } else {
         key = 'very high';
-    }
-
-    var styles = neighbourhoodStyleCache[key];
-    if (styles) {
-        styles = styles.slice(0);
-
-        // Adjust the text (otherwise the cached value is used, which is false)
-        styles.forEach(function(style) {
-            var text = style.getText();
-            if (text) {
-                text.setText(feature.get("name"));
-            }
-        });
-
-        return styles;
     }
 
     // Shared styles
@@ -238,7 +222,6 @@ function neighbourhoodStyle(feature, resolution) {
         }));
     }
 
-    neighbourhoodStyleCache[key] = styles;
     return styles;
 }
 
@@ -254,14 +237,14 @@ map.on('singleclick', function(evt) {
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
         popup.setPosition(evt.coordinate);
-        
+
         if (stats) {
             popup.setContent(JSON.stringify(stats));
             reportStats(JSON.stringify(stats));
         } else {
-            popup.setContent("No Crimes of this type.");   
+            popup.setContent("No Crimes of this type.");
         }
-        
+
         popup.show();
     }
 });

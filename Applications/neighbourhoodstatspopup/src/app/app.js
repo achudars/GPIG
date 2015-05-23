@@ -161,8 +161,6 @@ var map = new ol.Map({
 });
 
 // Styling function for neighbourhoods
-// var neighbourhoodStyleCache = {};
-
 function neighbourhoodStyle(feature, resolution) {
     // Determine the key for this feature
     var count = parseInt(feature.get('crimecount'));
@@ -179,21 +177,6 @@ function neighbourhoodStyle(feature, resolution) {
     } else {
         key = 'very high';
     }
-
-    // var styles = neighbourhoodStyleCache[key];
-    // if (styles) {
-    //     // styles = styles.slice(0);
-
-    //     // Adjust the text (otherwise the cached value is used, which is false)
-    //     styles.forEach(function(style) {
-    //         var text = style.getText();
-    //         if (text) {
-    //             text.setText(feature.get("name"));
-    //         }
-    //     });
-
-    //     return styles;
-    // }
 
     // Shared styles
     var styles = [
@@ -252,7 +235,6 @@ function neighbourhoodStyle(feature, resolution) {
         }));
     }
 
-    // neighbourhoodStyleCache[key] = styles;
     return styles;
 }
 
@@ -332,4 +314,3 @@ map.on('singleclick', function(evt) {
         }
     }
 });
-
