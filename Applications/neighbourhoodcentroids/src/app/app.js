@@ -38,6 +38,7 @@ var popup = new app.Popup({
     autoPan: true
 });
 
+filterValue = "";
 // Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
@@ -48,7 +49,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = filterValue+'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
         // TODO: Add filters to the viewparams
 
@@ -58,6 +59,8 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
             'srsname='+ projection.code_ + '&' +
             'viewparams=' + viewparams;
+
+        
 
         $.ajax({
             url: encodeURI(url)
@@ -297,13 +300,18 @@ map.on('singleclick', function(evt) {
 
     if (features.length > 0) {
         var feature = features[0];
-        var stats = JSON.parse(feature.get("stats"));
+        var stats_feature = feature.get("stats");
+        var stats = (typeof stats_feature !== 'undefined'? JSON.parse(stats_feature): false);
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
+        popup.setPosition(evt.coordinate);
+        
         if (stats) {
-            popup.setPosition(evt.coordinate);
-            popup.setContent(JSON.stringify(stats));
-            popup.show();
+            popup.setContent(JSON.stringify(stats));    
+        } else {
+            popup.setContent("No Crimes of this type.");   
         }
+        
+        popup.show();
     }
 });

@@ -82,7 +82,7 @@ function dateFilterCQL(fromDate, toDate) {
 function crimeTypeFilterSQL(){
     var crime_type = $("#ui-toolbox input[type='checkbox']:checked").map(function() {
                 return this.value;
-          }).get().join("','");
+          }).get().join("'\\\,'");
 
     return "CRIME:'"+ crime_type+"';";
 }
