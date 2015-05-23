@@ -35,6 +35,9 @@ var popup = new app.Popup({
     autoPan: true
 });
 
+
+filterValue = "";
+
 // Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
@@ -45,10 +48,8 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
-
-        // TODO: Add filters to the viewparams
-
+        var viewparams = filterValue+"AREA:" + transformed.join('\\\,') + '\\\,4326';
+        
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
@@ -66,9 +67,10 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
         maxZoom: zoom.max
-    })),
+    }))
 
 });
+
 
 // Create the OL map
 // Add a layer switcher to the map with two groups:
@@ -129,7 +131,7 @@ var map = new ol.Map({
 
         // Custom sources
         // Neighbourhoods (Stats)
-        new ol.layer.Vector({
+         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
             style: neighbourhoodStyle
@@ -247,13 +249,19 @@ map.on('singleclick', function(evt) {
 
     if (features.length > 0) {
         var feature = features[0];
-        var stats = JSON.parse(feature.get("stats"));
+        var stats_feature = feature.get("stats");
+        var stats = (typeof stats_feature !== 'undefined'? JSON.parse(stats_feature): false);
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
+        popup.setPosition(evt.coordinate);
+        
         if (stats) {
-            popup.setPosition(evt.coordinate);
             popup.setContent(JSON.stringify(stats));
-            popup.show();
+            reportStats(JSON.stringify(stats));
+        } else {
+            popup.setContent("No Crimes of this type.");   
         }
+        
+        popup.show();
     }
 });

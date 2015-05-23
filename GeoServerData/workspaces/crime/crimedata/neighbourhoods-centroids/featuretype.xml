@@ -69,7 +69,7 @@ CRIME - Comma separated list of crime types (&apos;type&apos;, &apos;type&apos;)
         <parameter>
           <name>CRIME</name>
           <defaultValue>crime</defaultValue>
-          <regexpValidator>^(((&apos;[\w\s\d]*&apos;),\s*)*(&apos;[\w\s\d]*&apos;))|(ALL)$</regexpValidator>
+          <regexpValidator>^((&apos;[\w\s\-\d]*&apos;),\s*)*(&apos;[\w\-\s\d]*&apos;)$</regexpValidator>
         </parameter>
         <parameter>
           <name>ENDDATE</name>
