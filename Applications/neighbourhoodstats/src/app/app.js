@@ -35,6 +35,9 @@ var popup = new app.Popup({
     autoPan: true
 });
 
+//var filterVal = " CRIME:'drugs';";
+filterValue = "";
+
 // Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
@@ -45,8 +48,8 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = 'AREA:' + transformed.join('\\\,') + '\\\,4326';
-
+        var viewparams = filterValue +"AREA:" + transformed.join('\\\,') + '\\\,4326';
+  
         // TODO: Add filters to the viewparams
 
         // Create the URL for the reqeust
@@ -55,6 +58,9 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
             'srsname='+ projection.code_ + '&' +
             'viewparams=' + viewparams;
+
+           // console.log(url);
+           console.log("abc")+filterValue;
 
         $.ajax({
             url: encodeURI(url)
@@ -66,9 +72,10 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
         maxZoom: zoom.max
-    })),
+    }))
 
 });
+
 
 // Create the OL map
 // Add a layer switcher to the map with two groups:
@@ -129,7 +136,7 @@ var map = new ol.Map({
 
         // Custom sources
         // Neighbourhoods (Stats)
-        new ol.layer.Vector({
+         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
             style: neighbourhoodStyle
@@ -252,6 +259,7 @@ map.on('singleclick', function(evt) {
         // TODO: Stylise the stats JSON into a nice popup content HTML
         if (stats) {
             popup.setPosition(evt.coordinate);
+            reportStats(JSON.stringify(stats));
             popup.setContent(JSON.stringify(stats));
             popup.show();
         }
