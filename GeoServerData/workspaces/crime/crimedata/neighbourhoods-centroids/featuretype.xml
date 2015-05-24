@@ -72,13 +72,13 @@ CRIME - Comma separated list of crime types (&apos;type&apos;, &apos;type&apos;)
           <regexpValidator>^((&apos;[\w\s\-\d]*&apos;),\s*)*(&apos;[\w\-\s\d]*&apos;)$</regexpValidator>
         </parameter>
         <parameter>
-          <name>ENDDATE</name>
-          <defaultValue>2100-01-01</defaultValue>
+          <name>STARTDATE</name>
+          <defaultValue>1970-01-01</defaultValue>
           <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
         </parameter>
         <parameter>
-          <name>STARTDATE</name>
-          <defaultValue>1970-01-01</defaultValue>
+          <name>ENDDATE</name>
+          <defaultValue>2100-01-01</defaultValue>
           <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
         </parameter>
       </virtualTable>
@@ -90,5 +90,6 @@ CRIME - Comma separated list of crime types (&apos;type&apos;, &apos;type&apos;)
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
   <circularArcPresent>false</circularArcPresent>
 </featureType>
