@@ -70,6 +70,22 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 
 });
 
+// create a vector layer to contain the feature to be highlighted
+var highlight = new ol.layer.Vector({
+  style: new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: '#00FFFF',
+      width: 3
+    })
+  }),
+  source: new ol.source.Vector()
+});
+
+// when the popup is closed, clear the highlight
+$(popup).on('close', function() {
+  highlight.getSource().clear();
+});
+
 // Create the OL map
 // Add a layer switcher to the map with two groups:
 // 1. background, which will use radio buttons
@@ -133,7 +149,8 @@ var map = new ol.Map({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
             style: neighbourhoodStyle
-        })
+        }),
+        highlight
     ],
 
     // initial center and zoom of the map's view
@@ -248,18 +265,22 @@ map.on('singleclick', function(evt) {
     if (features.length > 0) {
         var feature = features[0];
         var stats = JSON.parse(feature.get("stats"));
+       
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
         if (stats) {
+            highlight.getSource().clear();
             popup.setPosition(evt.coordinate);
             var container =  document.createElement("div");
             container.className = 'container';
-            container.style.width = '250px';
+            container.style.width = '300px';
             var table = document.createElement('table');
             table.className = 'table table-striped';
             var thead = document.createElement('thead');
             var heading = document.createElement('h4');
             heading.textContent = 'Crimes in this Postcode'
+            var crimecount = document.createElement('p');
+            crimecount.textContent = 'Total Crimes: ' + feature.get("crimecount");
             var tr = document.createElement('tr');
             var th_Crime = document.createElement('th');
             th_Crime.textContent = 'Crime';
@@ -269,6 +290,7 @@ map.on('singleclick', function(evt) {
             container.appendChild(table);
             table.appendChild(thead);
             thead.appendChild(heading);
+            thead.appendChild(crimecount);
             thead.appendChild(tr);
             tr.appendChild(th_Crime);
             tr.appendChild(th_Count);
@@ -283,6 +305,7 @@ map.on('singleclick', function(evt) {
               tr_body.appendChild(td_crime);
               tr_body.appendChild(td_count);
             }
+            highlight.getSource().addFeature(feature);
             popup.setContent(container.outerHTML);
             popup.show();
         }
