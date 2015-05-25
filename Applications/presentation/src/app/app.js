@@ -13,7 +13,7 @@ var featurePrefix = 'crime';
 
 // By default center around York
 var center = {lat: 53.958647, long: -1.082995};
-var zoom = {min: 13, default: 16, max: 19};
+var zoom = {min: 14, default: 16, max: 19};
 
 var neighbourhoodsStatsType = 'neighbourhoods-stats';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Stats';
@@ -173,7 +173,10 @@ var map = new ol.Map({
         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
-            style: generateNeighbourhoodStyle
+            style: function(feature, resolution) {
+                return app.sharedStyle.generateNeighbourhoodStyle(feature, resolution);
+            },
+            visible: false
         }),
 
         new ol.layer.Vector({
@@ -182,8 +185,10 @@ var map = new ol.Map({
                 distance: 60
             }),
             title: incidentsTitle,
-            style: generateIncidentStyle,
-            visible: false
+            style: function(feature, resolution) {
+                return app.sharedStyle.generateIncidentStyle(feature, resolution);
+            },
+            visible: true
         })
     ],
 

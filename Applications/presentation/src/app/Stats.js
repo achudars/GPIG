@@ -1,6 +1,14 @@
 /**
  *  Stats functions to handle the contents of the popups
+ *
+ *  @require Style.js
  */
+
+if (!window.app) {
+  window.app = {};
+}
+
+var app = window.app;
 
 /**
  *  Function that should return whatever is put into the
@@ -26,7 +34,7 @@ function generatePopupContent(feature, popup) {
                 container.id = 'chart';
                 container.width = 450;
                 container.height = 450;
-                container.style.marginTop = "30px";
+                container.style.marginTop = "10px";
             }
 
             // Get the data from stats, sort it, and merge if needed
@@ -44,11 +52,11 @@ function generatePopupContent(feature, popup) {
 
             var data = stats.slice(0, limit).map(function(element) {
                 var title = element.crime.replace(/-/g, ' ');
-                return [title.charAt(0).toUpperCase() + title.slice(1), element.count];
+                return {name: title.charAt(0).toUpperCase() + title.slice(1), y: element.count, color: app.sharedStyle.generateColour(element.crime)};
             });
 
             if (other > 0) {
-                data.push(["Other crimes", other]);
+                data.push({name: "Other crimes", y: other, color: app.sharedStyle.generateColour('other-crime')});
             }
 
             // For some reason can't reuse the chart, as data wouldn't
