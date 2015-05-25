@@ -66,14 +66,20 @@ app.Popup.prototype.setContent = function(content) {
  * Show this popup.
  */
 app.Popup.prototype.show = function() {
-  $(this.getElement()).show();
+    var me = this;
+    $(this.getElement()).show(400, function() {
+        $(me).trigger('didShow');
+    });
 };
 
 /**
  * Hide this popup.
  */
 app.Popup.prototype.hide = function() {
-  $(this.getElement()).hide();
+    var me = this;
+    $(this.getElement()).hide(400, function() {
+        $(me).trigger('didHide');
+    });
 };
 
 /**

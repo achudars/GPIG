@@ -182,7 +182,8 @@ var map = new ol.Map({
                 distance: 60
             }),
             title: incidentsTitle,
-            style: generateIncidentStyle
+            style: generateIncidentStyle,
+            visible: false
         })
     ],
 
@@ -297,7 +298,7 @@ map.on('singleclick', function(evt) {
         setHighlightedFeature(feature);
 
         if (typeof generatePopupContent == 'function') {
-            var content = generatePopupContent(feature);
+            var content = generatePopupContent(feature, popup);
             popup.setContent(content);
             popup.setPosition(evt.coordinate);
         }

@@ -6,55 +6,111 @@
  *  Function that should return whatever is put into the
  *  stats popup shown for a feature
  *  (feature might be a neighbourhood or an incident)
+ *
+ *  @param feature  - Feature for which the popup will be shown
+ *  @param popup    - Popup into which the content will be placed (function
+ *                      should avoid calling functions on the popup)
  */
-function generatePopupContent(feature) {
-    // Look if feature has stats (neighbourhood)
-    // TODO: Piecharts and stuff
-    if (feature.get('stats')) {
-        // HTML table
-        var stats_feature = feature.get("stats");
-        var stats = (typeof stats_feature !== 'undefined'? JSON.parse(stats_feature): false);
 
-        if (stats) {
-            // TODO: This needs tidying up...
-            var container = document.createElement("div");
-            container.className = 'container';
-            container.style.width = '300px';
-            var table = document.createElement('table');
-            table.className = 'table table-striped';
-            var thead = document.createElement('thead');
-            var heading = document.createElement('h4');
-            heading.textContent = 'Crimes in this Postcode'
-            var crimecount = document.createElement('p');
-            crimecount.textContent = 'Total Crimes: ' + feature.get("crimecount");
-            var tr = document.createElement('tr');
-            var th_Crime = document.createElement('th');
-            th_Crime.textContent = 'Crime';
-            var th_Count = document.createElement('th');
-            th_Count.textContent = 'Count';
-            var tbody = document.createElement('tbody');
-            container.appendChild(table);
-            table.appendChild(thead);
-            thead.appendChild(heading);
-            thead.appendChild(crimecount);
-            thead.appendChild(tr);
-            tr.appendChild(th_Crime);
-            tr.appendChild(th_Count);
-            table.appendChild(tbody);
-            for (var i = 0; i < stats.length; i++) {
-                tr_body = document.createElement('tr');
-                td_crime = document.createElement('td');
-                td_crime.textContent = stats[i].crime;
-                td_count = document.createElement('td');
-                td_count.textContent = stats[i].count;
-                tbody.appendChild(tr_body);
-                tr_body.appendChild(td_crime);
-                tr_body.appendChild(td_count);
+function generatePopupContent(feature, popup) {
+    // Look if feature has stats (neighbourhood)
+    if (feature.get('stats')) {
+        var stats = feature.get('stats');
+        stats = (typeof stats !== 'undefined'? JSON.parse(stats): false);
+
+        if (stats != false) {
+            // Create a chart element
+            var container = $(popup.getElement()).find('#chart')[0];
+            if (container == undefined) {
+                container = document.createElement('div');
+                container.id = 'chart';
+                container.width = 450;
+                container.height = 450;
+                container.style.marginTop = "30px";
             }
 
+            // Get the data from stats, sort it, and merge if needed
+            if (stats.length > 1) {
+                stats = stats.sort(function(a, b) {
+                    return a.count - b.count;
+                });
+            }
+
+            var other= 0;
+            var limit = 6; // Number of different types that are allowed
+            var others = stats.slice(limit).reduce(function(current, next) {
+                return current + next.count;
+            }, 0);
+
+            var data = stats.slice(0, limit).map(function(element) {
+                var title = element.crime.replace(/-/g, ' ');
+                return [title.charAt(0).toUpperCase() + title.slice(1), element.count];
+            });
+
+            if (other > 0) {
+                data.push(["Other crimes", other]);
+            }
+
+            $(popup).on('didShow', function(event) {
+                // For some reason can't reuse the chart, as data wouldn't
+                // update. FIXME, this is a hack, better approach would be to reuse
+                // the chart (otherwise get the same annoying animation every time
+                // even if the chart was already open)
+                var container = $(popup.getElement()).find('#chart').first();
+                var chart = $(container).highcharts();
+
+                if (chart != undefined) {
+                    chart.destroy();
+                }
+
+                $(container).highcharts({
+                    chart: {
+                        type: 'pie',
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        width: 350,
+                        height: 250
+                    },
+                    title: {
+                        text: 'Crimes in ' + feature.get('name')
+                    },
+                    tooltip: {
+                        pointFormat: 'Share: <b>{point.percentage:.1f}%</b>',
+                        hideDelay: 5,
+                        backgroundColor: 'white',
+                        headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
+                        borderColor: 'black',
+                        borderWidth: 1
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: false,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '{point.name}: {point.y} ',
+                                style: {
+                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor)
+                                }
+                            }
+                        }
+                    },
+                    series: [{
+                        data: data
+                    }]
+                });
+
+                $(popup).off(event);
+            });
+
+            $(popup).on('didHide', function(event) {
+                $(container).highcharts().destroy();
+                $(container).remove();
+                $(popup).off(event);
+            });
+
             return container.outerHTML;
-        } else {
-            return "No crimes of this type";
         }
     }
 
