@@ -7,6 +7,8 @@ function generateNeighbourhoodStyle(feature, resolution) {
     // Determine the key for this feature
     var count = parseInt(feature.get('crimecount'));
     var key;
+    var highlighted = feature.get('highlighted') == true;
+    var hovered = feature.get('hovered') == true;
 
     if (count < 100) {
         key = 'very low';
@@ -26,7 +28,7 @@ function generateNeighbourhoodStyle(feature, resolution) {
         new ol.style.Style({
             stroke: new ol.style.Stroke({
                 color: 'rgba(0,0,0,0.5)',
-                width: 1
+                width: (highlighted || hovered) ? 2 : 1
             }),
 
             text: new ol.style.Text({
@@ -44,35 +46,36 @@ function generateNeighbourhoodStyle(feature, resolution) {
     ]
 
     // Dynamic styles
+    var alpha = (highlighted ? '0.6' : hovered ? '0.45' : '0.35')
     var count = parseInt(feature.get("crimecount"));
     if (key == 'very low') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(115,206,255,0.35)'
+                color: 'rgba(115,206,255,' + alpha + ')'
             })
         }));
     } else if (key == 'low') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(187,255,255,0.35)'
+                color: 'rgba(187,255,255,' + alpha + ')'
             })
         }));
     } else if (key == 'medium') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,243,101,0.35)'
+                color: 'rgba(255,243,101,' + alpha + ')'
             })
         }));
     } else if (key == 'high') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,155,30,0.35)'
+                color: 'rgba(255,155,30,' + alpha + ')'
             })
         }));
     } else {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,22,4,0.35)'
+                color: 'rgba(255,22,4,' + alpha + ')'
             })
         }));
     }
@@ -85,10 +88,10 @@ function generateIncidentStyle(feature, resolution) {
     // Check if this is a cluster
     var clustered = feature.get('features');
     if (clustered != undefined && clustered.length > 1) {
-        console.log("clustered");
+        // console.log("clustered");
     } else {
         // Single feature
-        console.log("Single feature or no features");
+        // console.log("Single feature or no features");
     }
 
     return [new ol.style.Style({
