@@ -256,12 +256,13 @@ map.on('singleclick', function(evt) {
         popup.setPosition(evt.coordinate);
         
         if (stats) {
-            popup.setContent(JSON.stringify(stats));
-            reportStats(JSON.stringify(stats));
+           
+            reportStats(stats);
         } else {
             popup.setContent("No Crimes of this type.");   
+            popup.show();
         }
         
-        popup.show();
+        
     }
 });

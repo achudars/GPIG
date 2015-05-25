@@ -53,6 +53,7 @@ function applyFilters(){
         filterValue = dateFilterSQL(fromDate,toDate);
         filterValue += crimeTypeFilterSQL();
         neighbourhoodsStatsSource.clear(true);
+        centroidsSource.clear(true);
     }
     
     
