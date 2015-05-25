@@ -56,12 +56,6 @@ var wmsSource2 = new ol.source.TileWMS({
   serverType: 'geoserver'
 });
 
-//ol2client = new OpenLayers.WPSClient({
-//        servers: {
-//            local: '/geoserver/wps'
-//        }
-//});
-
 // create the OpenLayers Map object
 // we add a layer switcher to the map with two groups:
 // 1. background, which will use radio buttons
@@ -98,8 +92,8 @@ var map = new ol.Map({
       title: 'Aerial Imagery',
       group: "background",
       visible: false,
- 
-      
+
+
       source: new ol.source.MapQuest({layer: 'sat'})
     }),
     // MapQuest hybrid (uses a layer group)
@@ -118,13 +112,13 @@ var map = new ol.Map({
     }),   new ol.layer.Tile({
       title: layerTitle2,
       source: wmsSource2
-      
+
     }),
        new ol.layer.Tile({
       title: layerTitle,
       source: wmsSource
     })
-   
+
   ],
   // initial center and zoom of the map's view
   view: new ol.View({
@@ -136,22 +130,22 @@ var map = new ol.Map({
 });
 
 
- //register a single click listener on the map and show a popup
- //based on WMS GetFeatureInfo
+//register a single click listener on the map and show a popup
+//based on WMS GetFeatureInfo
 map.on('singleclick', function(evt) {
     getNeigbourhoodCrime(evt);
 });
- 
+
 function getNeigbourhoodCrime(event) {
  // use a CQL parser for easy filter creation
  //var format = new ol.format;
-  
+
  var viewResolution = map.getView().getResolution();
  var url = wmsSource2.getGetFeatureInfoUrl(
       event.coordinate, viewResolution, map.getView().getProjection(),
       {'INFO_FORMAT': infoFormat}
  );
- 
+
  $.getJSON(url,function(data){
    var neighbourhood = data.features[0].geometry.coordinates;
    var mpoly = [];
@@ -181,10 +175,4 @@ function getNeigbourhoodCrime(event) {
        CQL_FILTER: ('WITHIN(geom, MULTIPOLYGON('+query+'))')
    });
    });
- 
-//   popup.setPosition(event.coordinate);
-//   popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
-//   popup.show();
- //var html ;
- //:return html;
-} 
+}

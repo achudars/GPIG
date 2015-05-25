@@ -3,3 +3,4 @@
 # Ignore GeoServer logs/temp
 GeoServerData/logs/*
 GeoServerData/temp/*
+GeoServerData/gwc/*

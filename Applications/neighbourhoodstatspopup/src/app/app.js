@@ -12,8 +12,15 @@ var featurePrefix = 'crime';
 var neighbourhoodsStatsType = 'neighbourhoods-stats';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Crime Stats';
 
-var center = {lat: 53.958647, long: -1.082995};
-var zoom = {min: 13, default: 15, max: 16};
+var center = {
+    lat: 53.958647,
+    long: -1.082995
+};
+var zoom = {
+    min: 13,
+    default: 15,
+    max: 16
+};
 
 var infoFormat = 'application/json';
 
@@ -52,22 +59,38 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
-        });
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
+            });
     },
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
         maxZoom: zoom.max
     })),
 
+});
+
+// create a vector layer to contain the feature to be highlighted
+var highlight = new ol.layer.Vector({
+  style: new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: '#00FFFF',
+      width: 3
+    })
+  }),
+  source: new ol.source.Vector()
+});
+
+// when the popup is closed, clear the highlight
+$(popup).on('close', function() {
+  highlight.getSource().clear();
 });
 
 // Create the OL map
@@ -103,14 +126,18 @@ var map = new ol.Map({
         new ol.layer.Tile({
             title: 'Street Map',
             group: "background",
-            source: new ol.source.MapQuest({layer: 'osm'})
+            source: new ol.source.MapQuest({
+                layer: 'osm'
+            })
         }),
         // MapQuest imagery
         new ol.layer.Tile({
             title: 'Aerial Imagery',
             group: "background",
             visible: false,
-            source: new ol.source.MapQuest({layer: 'sat'})
+            source: new ol.source.MapQuest({
+                layer: 'sat'
+            })
         }),
         // MapQuest hybrid (uses a layer group)
         new ol.layer.Group({
@@ -119,10 +146,14 @@ var map = new ol.Map({
             visible: false,
             layers: [
                 new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'sat'})
+                    source: new ol.source.MapQuest({
+                        layer: 'sat'
+                    })
                 }),
                 new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'hyb'})
+                    source: new ol.source.MapQuest({
+                        layer: 'hyb'
+                    })
                 })
             ]
         }),
@@ -133,7 +164,8 @@ var map = new ol.Map({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
             style: neighbourhoodStyle
-        })
+        }),
+        highlight
     ],
 
     // initial center and zoom of the map's view
@@ -146,7 +178,6 @@ var map = new ol.Map({
 });
 
 // Styling function for neighbourhoods
-var neighbourhoodStyleCache = {};
 function neighbourhoodStyle(feature, resolution) {
     // Determine the key for this feature
     var count = parseInt(feature.get('crimecount'));
@@ -162,21 +193,6 @@ function neighbourhoodStyle(feature, resolution) {
         key = 'high';
     } else {
         key = 'very high';
-    }
-
-    var styles = neighbourhoodStyleCache[key];
-    if (styles) {
-        styles = styles.slice(0);
-
-        // Adjust the text (otherwise the cached value is used, which is false)
-        styles.forEach(function(style) {
-            var text = style.getText();
-            if (text) {
-                text.setText(feature.get("name"));
-            }
-        });
-
-        return styles;
     }
 
     // Shared styles
@@ -236,9 +252,36 @@ function neighbourhoodStyle(feature, resolution) {
         }));
     }
 
-    neighbourhoodStyleCache[key] = styles;
     return styles;
 }
+
+var highlighted;
+
+function neihgbourhoodHighlight(feature) {
+    if (highlighted) {
+        if (feature == highlighted) return;
+        // unhighlight
+        highlighted.setStyle(neighbourhoodStyle(highlighted));
+    }
+    //TODO: get actual resolution?
+    var currentStyles = neighbourhoodStyle(feature, null);
+    var stroke = currentStyles[0].getStroke();
+    stroke.setWidth(3);
+    stroke.setColor("rgba(255,0,0,0.5)");
+    feature.setStyle(currentStyles);
+    highlighted = feature;
+}
+
+map.on('pointermove', function(evt) {
+    if (evt.dragging) {
+        return;
+    }
+    var pixel = map.getEventPixel(evt.originalEvent);
+    map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+        neihgbourhoodHighlight(feature);
+    });
+});
+
 
 // Capture single clicks (for both incidents and stats)
 map.on('singleclick', function(evt) {
@@ -248,18 +291,22 @@ map.on('singleclick', function(evt) {
     if (features.length > 0) {
         var feature = features[0];
         var stats = JSON.parse(feature.get("stats"));
+       
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
         if (stats) {
+            highlight.getSource().clear();
             popup.setPosition(evt.coordinate);
-            var container =  document.createElement("div");
+            var container = document.createElement("div");
             container.className = 'container';
-            container.style.width = '250px';
+            container.style.width = '300px';
             var table = document.createElement('table');
             table.className = 'table table-striped';
             var thead = document.createElement('thead');
             var heading = document.createElement('h4');
             heading.textContent = 'Crimes in this Postcode'
+            var crimecount = document.createElement('p');
+            crimecount.textContent = 'Total Crimes: ' + feature.get("crimecount");
             var tr = document.createElement('tr');
             var th_Crime = document.createElement('th');
             th_Crime.textContent = 'Crime';
@@ -269,24 +316,24 @@ map.on('singleclick', function(evt) {
             container.appendChild(table);
             table.appendChild(thead);
             thead.appendChild(heading);
+            thead.appendChild(crimecount);
             thead.appendChild(tr);
             tr.appendChild(th_Crime);
             tr.appendChild(th_Count);
-            table.appendChild(tbody);            
-            for (var i = 0; i < stats.length; i++ ) {
-              tr_body = document.createElement('tr');
-              td_crime = document.createElement('td');
-              td_crime.textContent = stats[i].crime;
-              td_count = document.createElement('td');
-              td_count.textContent = stats[i].count;
-              tbody.appendChild(tr_body);
-              tr_body.appendChild(td_crime);
-              tr_body.appendChild(td_count);
+            table.appendChild(tbody);
+            for (var i = 0; i < stats.length; i++) {
+                tr_body = document.createElement('tr');
+                td_crime = document.createElement('td');
+                td_crime.textContent = stats[i].crime;
+                td_count = document.createElement('td');
+                td_count.textContent = stats[i].count;
+                tbody.appendChild(tr_body);
+                tr_body.appendChild(td_crime);
+                tr_body.appendChild(td_count);
             }
+            highlight.getSource().addFeature(feature);
             popup.setContent(container.outerHTML);
             popup.show();
         }
     }
 });
-
-

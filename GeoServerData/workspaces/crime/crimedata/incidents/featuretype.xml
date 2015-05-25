@@ -44,6 +44,11 @@
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <metadata>
+    <entry key="elevation">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
+    </entry>
     <entry key="time">
       <dimensionInfo>
         <enabled>false</enabled>
@@ -51,11 +56,6 @@
       </dimensionInfo>
     </entry>
     <entry key="cachingEnabled">false</entry>
-    <entry key="elevation">
-      <dimensionInfo>
-        <enabled>false</enabled>
-      </dimensionInfo>
-    </entry>
   </metadata>
   <store class="dataStore">
     <id>DataStoreInfoImpl--285b7e02:14d4812a9f4:-7ffd</id>
@@ -63,5 +63,6 @@
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
   <circularArcPresent>false</circularArcPresent>
 </featureType>
