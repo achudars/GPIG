@@ -4,7 +4,7 @@ function reportStats(stats){
     var limit = 6;
  
     // popup.setContent(JSON.stringify(stats));
-     popup.setContent('<div width="400" height="400" id="myChart"></div>');
+     popup.setContent('<div width="300" height="300" id="myChart"></div>');
      popup.show();
     
      var data = [];
@@ -48,10 +48,15 @@ function addChart(crimes){
             plotShadow: false
         },
         title: {
-            text: 'Crimes in this neighbourhood:'
+            text: 'Crimes in the neighbourhood'
         },
         tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            pointFormat: 'crime share: <b>{point.percentage:.1f}%</b>',
+            hideDelay: 5,
+            backgroundColor: 'white',
+            headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
+            borderColor: 'black',
+            borderWidth: 1
         },
         plotOptions: {
             pie: {
@@ -68,7 +73,7 @@ function addChart(crimes){
         },
         series: [{
             type: 'pie',
-            name: 'Crime Share',
+            name: '{series.name}',
             data: crimes
         }]
     });
