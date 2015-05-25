@@ -51,18 +51,17 @@ function generatePopupContent(feature, popup) {
                 data.push(["Other crimes", other]);
             }
 
+            // For some reason can't reuse the chart, as data wouldn't
+            // update. FIXME, this is a hack, better approach would be to reuse
+            // the chart (otherwise get the same annoying animation every time
+            // even if the chart was already open)
+            var chart = $(container).highcharts();
+            if (chart != undefined) {
+                chart.destroy();
+            }
+
             $(popup).on('didShow', function(event) {
-                // For some reason can't reuse the chart, as data wouldn't
-                // update. FIXME, this is a hack, better approach would be to reuse
-                // the chart (otherwise get the same annoying animation every time
-                // even if the chart was already open)
                 var container = $(popup.getElement()).find('#chart').first();
-                var chart = $(container).highcharts();
-
-                if (chart != undefined) {
-                    chart.destroy();
-                }
-
                 $(container).highcharts({
                     chart: {
                         type: 'pie',
