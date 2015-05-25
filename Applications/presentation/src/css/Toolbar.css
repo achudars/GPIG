@@ -1,0 +1,60 @@
+
+.datepickers {
+    width: 90px;
+}
+
+.filterDiv {
+    float: left;
+    margin-right: 15px;  
+}
+
+.datepickers{
+    float: right;
+    text-align: center;
+}
+
+.filter {
+    float: left;
+    margin-left: 15px;
+}
+
+.filter label{
+    margin-right: 15px;
+   
+}
+
+.line {
+    border-right: 1px solid #C8D5E0;
+    float: left;
+    height: 90px;
+    margin-top: 10px;
+}
+
+.btns {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    padding: 3px 6px;
+    margin-bottom: 0;
+    font-size: 11px;
+    font-weight: 200;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    width: 75px;
+}
+
+.btns:hover {
+    background-color: #25537B;
+}
