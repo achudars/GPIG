@@ -38,6 +38,7 @@ var app = window.app;
 app.Popup = function(options) {
   this.autoPan = options.autoPan !== undefined ? options.autoPan : false;
   this.margin = options.margin !== undefined ? options.margin : 10;
+
   ol.Overlay.call(this, options);
   var me = this;
   if (options.closeBox === true) {

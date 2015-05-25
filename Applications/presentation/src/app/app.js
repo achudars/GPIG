@@ -219,56 +219,44 @@ function getLayerFromFeature(feature) {
 // TODO: There might be a nicer way to create these functions, in essence it is about
 // setting a variable, but also raising/lowering a flag and re-rendering
 
-// Currently highlighted/hovered feature
-var highlightedFeature = null;
-var hoveredFeature = null;
+// Special features (hover/highlight etc.)
+function setSpecialFeature(key, feature, redraw) {
+    if (redraw == undefined) {
+        redraw = true;
+    }
 
-function setHighlightedFeature(feature) {
-    if (highlightedFeature === feature) {
+    if (!window.specialFeatures) {
+        window.specialFeatures = {};
+    }
+    var features = window.specialFeatures;
+
+    var previousFeature = features[key];
+    if (previousFeature === feature) {
         return;
     }
 
-    if (highlightedFeature) {
-        highlightedFeature.set('highlighted', false);
-        var styleFunction = getLayerFromFeature(highlightedFeature).getStyleFunction();
-        highlightedFeature.setStyle(styleFunction(highlightedFeature, null));
-        highlightedFeature = null;
+    if (previousFeature != undefined) {
+        previousFeature.set(key, false);
+        if (redraw) {
+            var styleFunction = getLayerFromFeature(previousFeature).getStyleFunction();
+            previousFeature.setStyle(styleFunction(previousFeature, null));
+        }
+
+        delete features[key];
     }
 
-    highlightedFeature = feature;
-
-    if (highlightedFeature) {
-        highlightedFeature.set('highlighted', true);
-        var styleFunction = getLayerFromFeature(highlightedFeature).getStyleFunction();
-        highlightedFeature.setStyle(styleFunction(highlightedFeature, null));
-    }
-}
-
-function setHoveredFeature(feature) {
-    if (hoveredFeature === feature) {
-        return;
-    }
-
-    if (hoveredFeature) {
-        hoveredFeature.set('hovered', false);
-        var styleFunction = getLayerFromFeature(hoveredFeature).getStyleFunction();
-        hoveredFeature.setStyle(styleFunction(hoveredFeature, null));
-        hoveredFeature = null;
-    }
-
-    hoveredFeature = feature;
-
-    if (hoveredFeature) {
-        hoveredFeature.set('hovered', true);
-        var styleFunction = getLayerFromFeature(hoveredFeature).getStyleFunction();
-        hoveredFeature.setStyle(styleFunction(hoveredFeature, null));
+    if (feature != undefined) {
+        feature.set(key, true);
+        var styleFunction = getLayerFromFeature(feature).getStyleFunction();
+        feature.setStyle(styleFunction(feature, null));
+        features[key] = feature;
     }
 }
 
 // when the popup is closed, clear the highlight
 $(popup).on('close', function() {
     // Clear the highlight
-    setHighlightedFeature(null);
+    setSpecialFeature('highlighted', null);
 });
 
 // Capture hover events
@@ -277,12 +265,28 @@ map.on('pointermove', function(evt) {
         return;
     }
 
-    var coordinate = map.getEventCoordinate(evt.originalEvent);
-    var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coordinate);
-    if (features.length > 0) {
-        setHoveredFeature(features[0]);
+    // Ignore events that are within overlays (to avoid weird ghosting)
+    var element = document.elementFromPoint(evt.browserEvent.clientX, evt.browserEvent.clientY);
+
+    var disable = false;
+    map.getOverlays().forEach(function(overlay, idx) {
+        var container = overlay.getElement();
+        if (container === element || $.contains(overlay.getElement(), element)) {
+            disable = true;
+            return false;
+        }
+    });
+
+    if (disable == false) {
+        var coordinate = map.getEventCoordinate(evt.originalEvent);
+        var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coordinate);
+        if (features.length > 0) {
+            setSpecialFeature('hover', features[0]);
+        } else {
+            setSpecialFeature('hover', null);
+        }
     } else {
-        setHoveredFeature(null);
+        setSpecialFeature('hover', null);
     }
 });
 
@@ -295,7 +299,7 @@ map.on('singleclick', function(evt) {
         var feature = features[0];
 
         // Set the feature as highlighted and re-render
-        setHighlightedFeature(feature);
+        setSpecialFeature('highlighted', feature);
 
         if (typeof generatePopupContent == 'function') {
             var content = generatePopupContent(feature, popup);
@@ -305,7 +309,7 @@ map.on('singleclick', function(evt) {
 
         popup.show();
     } else {
-        setHighlightedFeature(null);
+        setSpecialFeature('highlighted', null);
         popup.hide();
     }
 });

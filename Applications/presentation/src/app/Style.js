@@ -8,7 +8,7 @@ function generateNeighbourhoodStyle(feature, resolution) {
     var count = parseInt(feature.get('crimecount'));
     var key;
     var highlighted = feature.get('highlighted') == true;
-    var hovered = feature.get('hovered') == true;
+    var hovered = feature.get('hover') == true;
 
     if (count < 100) {
         key = 'very low';
