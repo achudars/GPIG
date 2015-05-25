@@ -58,5 +58,5 @@ function generatePopupContent(feature) {
         }
     }
 
-    return null
+    return "";
 }

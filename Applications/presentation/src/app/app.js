@@ -199,10 +199,90 @@ var map = new ol.Map({
  *  Interactions
  */
 
+function getLayerFromFeature(feature) {
+    var found = null;
+    map.getLayers().forEach(function(layer) {
+        if (!(layer instanceof ol.layer.Vector)) {
+             return false;
+           }
+
+           if (layer.getSource().getFeatureById(feature.getId()) != undefined) {
+               found = layer;
+               return true;
+           }
+    });
+
+    return found;
+}
+
+// TODO: There might be a nicer way to create these functions, in essence it is about
+// setting a variable, but also raising/lowering a flag and re-rendering
+
+// Currently highlighted/hovered feature
+var highlightedFeature = null;
+var hoveredFeature = null;
+
+function setHighlightedFeature(feature) {
+    if (highlightedFeature === feature) {
+        return;
+    }
+
+    if (highlightedFeature) {
+        highlightedFeature.set('highlighted', false);
+        var styleFunction = getLayerFromFeature(highlightedFeature).getStyleFunction();
+        highlightedFeature.setStyle(styleFunction(highlightedFeature, null));
+        highlightedFeature = null;
+    }
+
+    highlightedFeature = feature;
+
+    if (highlightedFeature) {
+        highlightedFeature.set('highlighted', true);
+        var styleFunction = getLayerFromFeature(highlightedFeature).getStyleFunction();
+        highlightedFeature.setStyle(styleFunction(highlightedFeature, null));
+    }
+}
+
+function setHoveredFeature(feature) {
+    if (hoveredFeature === feature) {
+        return;
+    }
+
+    if (hoveredFeature) {
+        hoveredFeature.set('hovered', false);
+        var styleFunction = getLayerFromFeature(hoveredFeature).getStyleFunction();
+        hoveredFeature.setStyle(styleFunction(hoveredFeature, null));
+        hoveredFeature = null;
+    }
+
+    hoveredFeature = feature;
+
+    if (hoveredFeature) {
+        hoveredFeature.set('hovered', true);
+        var styleFunction = getLayerFromFeature(hoveredFeature).getStyleFunction();
+        hoveredFeature.setStyle(styleFunction(hoveredFeature, null));
+    }
+}
+
 // when the popup is closed, clear the highlight
 $(popup).on('close', function() {
     // Clear the highlight
+    setHighlightedFeature(null);
+});
 
+// Capture hover events
+map.on('pointermove', function(evt) {
+    if (evt.dragging) {
+        return;
+    }
+
+    var coordinate = map.getEventCoordinate(evt.originalEvent);
+    var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coordinate);
+    if (features.length > 0) {
+        setHoveredFeature(features[0]);
+    } else {
+        setHoveredFeature(null);
+    }
 });
 
 // Capture single clicks (for both incidents and stats)
@@ -213,6 +293,9 @@ map.on('singleclick', function(evt) {
     if (features.length > 0) {
         var feature = features[0];
 
+        // Set the feature as highlighted and re-render
+        setHighlightedFeature(feature);
+
         if (typeof generatePopupContent == 'function') {
             var content = generatePopupContent(feature);
             popup.setContent(content);
@@ -221,6 +304,7 @@ map.on('singleclick', function(evt) {
 
         popup.show();
     } else {
+        setHighlightedFeature(null);
         popup.hide();
     }
 });
