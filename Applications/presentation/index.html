@@ -40,6 +40,9 @@
         border-radius: 5px;
         background-color: white;
       }
+      #policeNo{
+        width: 100px;
+      }
     </style>
     
     <script src="src/ol3/ol-debug.js"></script>
@@ -52,6 +55,38 @@
     <title>Crime-Aid</title>
   </head>
   <body>
+    
+    <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Police Resource Distribution</h4>
+            </div>
+            <div class="modal-body">
+                <p><b>Select the number of police you need for the area covered by the map</b></p>
+              <div class="row">
+                  <div class="col-xs-3 col-xs-offset-3">
+                      <div class="input-group number-spinner">
+                          <span class="input-group-btn data-dwn">
+                              <button class="btn btn-default btn-info" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></button>
+                          </span>
+                          <input id="policeNo" type="text" class="form-control text-center" value="10" min="10" max="400" width="585px">
+                          <span class="input-group-btn data-up">
+                              <button class="btn btn-default btn-info" data-dir="up"><span class="glyphicon glyphicon-plus"></span></button>
+                          </span>
+                      </div>
+                  </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="calculateDistribution();">Calculate Distribution</button>
+            </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -109,6 +144,14 @@
             <div class="filterDiv">
                 <span class="timeSpan">From date:</span> <input type="text" id="fromDate" class="datepickers" value="01-11-2013"> <br/><br/>
                 <span class="timeSpan">To date: </span><input type="text" id="toDate" class="datepickers" value="03-06-2015">
+            </div>
+        </div>
+        <div class="line"></div>
+        
+        <div class="filter">
+            <label>Input police resources to be distributed:</label><br/>
+            <div class="filterDiv">
+                 <button type="button" class="btn btn-primary btn-lg" id="policeResourceBtn" data-toggle="modal" data-target="#policeModal" >Police</button><br/>
             </div>
         </div>
         <div class="line"></div>
