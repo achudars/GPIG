@@ -296,19 +296,23 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
             src: imageInfo.img,
             scale: 1 / imageInfo.scale
         }),
-
-        text: new ol.style.Text({
-            font: '14px Helvetica, sans-serif',
-            text: clustered.length.toString(),
-            fill: new ol.style.Fill({
-                color: "#000"
-            }),
-            stroke: new ol.style.Stroke({
-                color: "#FFF",
-                width: 2
-            })
-        })
     })];
+
+    if (clustered.length > 1) {
+        styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+                font: '14px Helvetica, sans-serif',
+                text: clustered.length.toString(),
+                fill: new ol.style.Fill({
+                    color: "#000"
+                }),
+                stroke: new ol.style.Stroke({
+                    color: "#FFF",
+                    width: 3
+                })
+            })
+        }));
+    }
 
     this.incidentStyleCache[key] = styles;
     return styles;
