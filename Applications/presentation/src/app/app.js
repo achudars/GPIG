@@ -107,6 +107,37 @@ var incidentsSource = new ol.source.ServerVector({
     }))
 });
 
+var incidentsClusterSource = new ol.source.Cluster({
+    source: incidentsSource,
+    distance: 60
+});
+
+// Listen to the events to recalculate the encapsulated crime types
+function recalculateClusterInfo(feature) {
+    var clustered = feature.get('features');
+    var crimes = clustered.reduce(function(currentValue, element) {
+        var crime = element.get('crime');
+        if (crime && currentValue.indexOf(crime) == -1) {
+            currentValue.push(crime);
+        }
+
+        return currentValue;
+    }, []).sort();
+
+    if (feature.get('crime') != crimes) {
+        feature.set('crime', crimes);
+    }
+
+    if (feature.get('size') != clustered.length) {
+        feature.set('size', clustered.length);
+    }
+}
+
+incidentsClusterSource.on('addfeature', function(evt) {
+    var feature = evt.feature;
+    recalculateClusterInfo(feature);
+});
+
 /**
  *  Map
  */
@@ -180,10 +211,7 @@ var map = new ol.Map({
         }),
 
         new ol.layer.Vector({
-            source: new ol.source.Cluster({
-                source: incidentsSource,
-                distance: 60
-            }),
+            source: incidentsClusterSource,
             title: incidentsTitle,
             style: function(feature, resolution) {
                 return app.sharedStyle.generateIncidentStyle(feature, resolution);

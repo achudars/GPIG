@@ -260,35 +260,29 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
         this.incidentStyleCache = {};
     }
 
-    // Check if this feature has been seen
-    var key = feature.get('style-cache-key');
-    if (key != undefined) {
-        var styles = this.incidentStyleCache[key];
-        if (styles != undefined) {
-            return styles;
-        }
-    } else {
-        key = (new Date % 9e6).toString(36);
-        feature.set('style-cache-key', key);
+    var crimes = feature.get('crime');
+    var size = feature.get('size');
+
+    // Check if such a feature has been seen (crimes + size)
+    if (crimes == undefined || size == undefined) {
+        console.log("values not defined");
+        return [];
+    }
+
+    var key = 'crimes:' + crimes + ';size:' + size;
+
+    var styles = this.incidentStyleCache[key];
+    if (styles != undefined) {
+        return styles;
     }
 
     // Generate an appropriate image for the cluster
-    var clustered = feature.get('features');
-    var crimes = clustered.reduce(function(currentValue, element) {
-        var crime = element.get('crime');
-        if (crime && currentValue.indexOf(crime) == -1) {
-            currentValue.push(crime);
-        }
-
-        return currentValue;
-    }, []).sort();
-
     var me = this;
     var colours = crimes.map(function(element, idx) {
         return me.generateColour(element);
     });
 
-    var radius = Math.min(Math.max(clustered.length / 500 * 12, 8), 12);
+    var radius = Math.min(Math.max(size / 500 * 12, 8), 12);
     var imageInfo = this.generateColoursImage(colours, radius, 2);
 
     styles = [new ol.style.Style({
@@ -298,11 +292,11 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
         }),
     })];
 
-    if (clustered.length > 1) {
+    if (size > 1) {
         styles.push(new ol.style.Style({
             text: new ol.style.Text({
                 font: '14px Helvetica, sans-serif',
-                text: clustered.length.toString(),
+                text: size.toString(),
                 fill: new ol.style.Fill({
                     color: "#000"
                 }),
