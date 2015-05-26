@@ -45,6 +45,7 @@ var popup = new app.Popup({
  *  Sources
  */
 
+filterValue = "";
 // Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
@@ -55,7 +56,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = filterValue+"AREA:" + transformed.join('\\\,') + '\\\,4326';
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
@@ -63,6 +64,8 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
             'srsname='+ projection.code_ + '&' +
             'viewparams=' + viewparams;
+
+          
 
         $.ajax({
             url: encodeURI(url)
@@ -79,6 +82,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 });
 
 // Incidents (as a vector for clustering/styling)
+var incidentsFilterVal = "";
 var incidentsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
         featureNS: 'http://localhost',
@@ -90,8 +94,14 @@ var incidentsSource = new ol.source.ServerVector({
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
             'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&'+
-            'srsname='+ projection.code_ + '&' +
-            'bbox=' + extent.join(',') + ',' + projection.code_;
+            'srsname='+ projection.code_ +
+            '&CQL_FILTER={{CQLFILTER}}';
+
+       var cqlFilterBBox =  "BBOX(geom, "+extent.join(',')+",'"+projection.code_+"')";
+       var cqlFilter = cqlFilterBBox + incidentsFilterVal;
+        
+       url = url.replace('{{CQLFILTER}}', cqlFilter);
+        
 
         $.ajax({
             url: encodeURI(url)
@@ -298,7 +308,7 @@ function setSpecialFeature(key, feature, redraw) {
         return;
     }
 
-    if (previousFeature != undefined) {
+    if (previousFeature != undefined && typeof previousFeature != undefined) {
         previousFeature.set(key, false);
         if (redraw) {
             var styleFunction = getLayerFromFeature(previousFeature).getStyleFunction();

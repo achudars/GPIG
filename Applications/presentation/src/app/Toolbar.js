@@ -42,15 +42,20 @@ function applyFilters(){
         } else {
             filterVal = filterCrime; //even if empty, don't want to show any crimes than
         }
-        incidentsSource.updateParams({
-            CQL_FILTER: (filterVal)
-        }); 
+
+        var view = map.getView(),
+        extent = view.calculateExtent(map.getSize());
+        incidentsFilterVal = " AND " +filterVal;
+        incidentsSource.clear(true);
+        incidentsSource.loader_(extent, view.getResolution(), view.getProjection());
+        
     }
     
     if (typeof neighbourhoodsStatsSource !== 'undefined' || typeof centroidsSource !== 'undefined' ) {
         filterValue = dateFilterSQL(fromDate,toDate);
         filterValue += crimeTypeFilterSQL();
         neighbourhoodsStatsSource.clear(true);
+       
     }
     
     
