@@ -46,9 +46,13 @@ if (!app.sharedStyle) {
     app.sharedStyle = new app.Style();
 }
 
-app.Style.prototype.generateColoursImage = function(colors, radius) {
+app.Style.prototype.generateColoursImage = function(colors, radius, strokeWidth) {
     if (colors.constructor !== Array) {
         colors = [colors];
+    }
+
+    if (strokeWidth == undefined) {
+        strokeWidth = 2;
     }
 
     if (this.colourImageCache == undefined) {
@@ -75,21 +79,16 @@ app.Style.prototype.generateColoursImage = function(colors, radius) {
         return info;
     }
 
-    var strokeWidth = 2;
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
 
-    var width = (radius * 2) + (strokeWidth * 2);
-    var height = (radius * 2 * colors.length) + (strokeWidth * 2);
-
-    // Adjust the height (so we won't just linearly stack items)
-    var minHeight = (radius * 2) + (colors.length - 1 * 1) + (strokeWidth * 2);
-    var maxHeight = (radius * 8 + strokeWidth * 2);
-    height = height > maxHeight ? maxHeight : height < minHeight ? minHeight : height;
+    var width = (radius * 4) + (strokeWidth * 2);
+    var height = (radius * 4) + (strokeWidth * 2);
 
     canvas.width = width;
     canvas.height = height;
 
+    // Adjust for HiDPI screens
     var devicePixelRatio = window.devicePixelRatio || 1;
     var backingStoreRatio = context.webkitBackingStorePixelRatio ||
                     context.mozBackingStorePixelRatio ||
@@ -108,26 +107,50 @@ app.Style.prototype.generateColoursImage = function(colors, radius) {
         context.scale(ratio, ratio);
     }
 
-    // Determine the drawing logic
-    var centerX = radius + strokeWidth;
-    var centerY = radius + strokeWidth;
+    // Polar coordinates logic
+    var slice = (2 * Math.PI) / colors.length;
+    var bigRadius = radius;
+    var centerX = width / 2;
+    var centerY = height / 2;
 
-    var endY = height - radius - strokeWidth;
-    var step = Math.max((endY - centerY) / colors.length, 1);
+    // Positions for each colour
+    var positions = colors.map(function(element, idx) {
+        var angle = idx * slice;
+        return [centerX + bigRadius * Math.cos(angle), centerY + bigRadius * Math.sin(angle)];
+    });
 
     // First the outline stroke
     colors.forEach(function(element, idx) {
         context.beginPath();
-        context.arc(centerX, centerY + idx * step, radius + strokeWidth, 0, 2 * Math.PI, false);
+        context.arc(positions[idx][0], positions[idx][1], radius + strokeWidth, 0, 2 * Math.PI, false);
         context.fillStyle = '#FFF';
         context.fill();
     });
 
     colors.forEach(function(element, idx) {
+        context.save();
+
+        // Each should be clipped to the next
+        if (idx < colors.length - 1) {
+            context.beginPath();
+            context.rect(0, 0, width, height);
+            context.arc(positions[idx + 1][0], positions[idx + 1][1], radius - 0.25, 0, 2 * Math.PI, true);
+            context.closePath();
+            context.clip();
+        } else if (idx == colors.length - 1) {
+            context.beginPath();
+            context.rect(0, 0, width, height);
+            context.arc(positions[0][0], positions[0][1], radius - 0.25, 0, 2 * Math.PI, true);
+            context.closePath();
+            context.clip();
+        }
+
         context.beginPath();
-        context.arc(centerX, centerY + idx * step, radius, 0, 2 * Math.PI, false);
+        context.arc(positions[idx][0], positions[idx][1], radius, 0, 2 * Math.PI, false);
         context.fillStyle = element;
         context.fill();
+
+        context.restore();
     });
 
     info = {img: canvas.toDataURL(), size: [width, height], scale: ratio};
@@ -265,12 +288,25 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
         return me.generateColour(element);
     });
 
-    var imageInfo = this.generateColoursImage(colours, 6);
+    var radius = Math.min(Math.max(clustered.length / 500 * 12, 8), 12);
+    var imageInfo = this.generateColoursImage(colours, radius, 2);
 
     styles = [new ol.style.Style({
         image: new ol.style.Icon({
             src: imageInfo.img,
             scale: 1 / imageInfo.scale
+        }),
+
+        text: new ol.style.Text({
+            font: '14px Helvetica, sans-serif',
+            text: clustered.length.toString(),
+            fill: new ol.style.Fill({
+                color: "#000"
+            }),
+            stroke: new ol.style.Stroke({
+                color: "#FFF",
+                width: 2
+            })
         })
     })];
 
