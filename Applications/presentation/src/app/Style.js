@@ -137,7 +137,7 @@ app.Style.prototype.generateColoursImage = function(colors, radius, strokeWidth)
             context.arc(positions[idx + 1][0], positions[idx + 1][1], radius - 0.25, 0, 2 * Math.PI, true);
             context.closePath();
             context.clip();
-        } else if (idx == colors.length - 1) {
+        } else if (idx == colors.length - 1 && idx > 0) {
             context.beginPath();
             context.rect(0, 0, width, height);
             context.arc(positions[0][0], positions[0][1], radius - 0.25, 0, 2 * Math.PI, true);
