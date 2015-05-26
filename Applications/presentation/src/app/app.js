@@ -211,7 +211,11 @@ var map = new ol.Map({
             title: 'CartoDB Light',
             group: "background",
             source: new ol.source.XYZ({
-                url: 'http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                urls: ['http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                        'http://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                        'http://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                        'http://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'],
+                tilePixelRatio: 2,
                 attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
             })
         }),
@@ -221,7 +225,11 @@ var map = new ol.Map({
             title: 'CartoDB Dark',
             group: "background",
             source: new ol.source.XYZ({
-                url: 'http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                urls: ['http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+                        'http://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+                        'http://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+                        'http://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+                tilePixelRatio: 2,
                 attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
             }),
             visible: false
