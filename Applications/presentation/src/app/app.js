@@ -151,7 +151,7 @@ var map = new ol.Map({
         new app.LayersControl({
             groups: {
                 background: {
-                    title: "Base Layers",
+                    title: "Base Layer",
                     exclusive: true
                 },
                 'default': {
@@ -171,32 +171,62 @@ var map = new ol.Map({
 
     // layers
     layers: [
-        // MapQuest streets
+        // Standard
         new ol.layer.Tile({
-            title: 'Street Map',
-            group: "background",
-            source: new ol.source.MapQuest({layer: 'osm'})
+            title: 'Standard',
+            group: 'background',
+            source: new ol.source.XYZ({
+                urls: ['http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'http://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'http://c.tile.openstreetmap.org/{z}/{x}/{y}.png']
+            }),
+            visible: false
         }),
-        // MapQuest imagery
+
+        // Mapnik
         new ol.layer.Tile({
-            title: 'Aerial Imagery',
-            group: "background",
-            visible: false,
-            source: new ol.source.MapQuest({layer: 'sat'})
+            title: 'Mapnik',
+            group: 'background',
+            source: new ol.source.XYZ({
+                urls: ['http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+                        'http://otile2.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+                        'http://otile3.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+                        'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png']
+            }),
+            visible: false
         }),
-        // MapQuest hybrid (uses a layer group)
-        new ol.layer.Group({
-            title: 'Imagery with Streets',
+
+        // CartoDB Light
+        new ol.layer.Tile({
+            title: 'CartoDB Light',
             group: "background",
-            visible: false,
-            layers: [
-                new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'sat'})
-                }),
-                new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'hyb'})
-                })
-            ]
+            source: new ol.source.XYZ({
+                url: 'http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
+            })
+        }),
+
+        // CartoDB Dark
+        new ol.layer.Tile({
+            title: 'CartoDB Dark',
+            group: "background",
+            source: new ol.source.XYZ({
+                url: 'http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
+            }),
+            visible: false
+        }),
+
+        // Humanitarian
+        new ol.layer.Tile({
+            title: 'Humanitarian',
+            group: 'background',
+            source: new ol.source.XYZ({
+                urls: ['http://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                        'http://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                        'http://c.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png']
+            }),
+            visible: false
         }),
 
         // Custom sources
