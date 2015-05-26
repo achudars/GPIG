@@ -25,20 +25,20 @@ app.Style = function(/*options*/) {
 
     // Populate our colour scheme for crime types
     this.conversion = {
-        'drugs': hexToRGB('090446'),
-        'public-order': hexToRGB('384E77'),
-        'other-crime': hexToRGB('FEB95F'),
-        'bicycle-theft': hexToRGB('8BBEB2'),
-        'other-theft': hexToRGB('C2095A'),
-        'robbery': hexToRGB('30C5FF'),
-        'possession-of-weapons': hexToRGB('E9EB87'),
-        'burglary': hexToRGB('7B5E7B'),
-        'violent-crime': hexToRGB('DDF45B'),
-        'theft-from-the-person': hexToRGB('71B48D'),
-        'anti-social-behaviour': hexToRGB('404E5C'),
-        'vehicle-crime': hexToRGB('5BC0BE'),
-        'criminal-damage-arson': hexToRGB('4EA2BE'),
-        'shoplifting': hexToRGB('5BC0BE')
+        'drugs': hexToRGB('231f20'),
+        'public-order': hexToRGB('1c3f95'),
+        'other-crime': hexToRGB('5a5758'),
+        'bicycle-theft': hexToRGB('737171'),
+        'other-theft': hexToRGB('959ca1'),
+        'robbery': hexToRGB('d9d8d8'),
+        'possession-of-weapons': hexToRGB('ee2e24'),
+        'burglary': hexToRGB('f386a1'),
+        'violent-crime': hexToRGB('ffd204'),
+        'theft-from-the-person': hexToRGB('00853e'),
+        'anti-social-behaviour': hexToRGB('85cebc'),
+        'vehicle-crime': hexToRGB('009ddc'),
+        'criminal-damage-arson': hexToRGB('98005d'),
+        'shoplifting': hexToRGB('b06110')
     }
 }
 
