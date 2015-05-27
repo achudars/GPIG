@@ -311,3 +311,38 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
     this.incidentStyleCache[key] = styles;
     return styles;
 }
+
+app.Style.prototype.generatePoliceDistroStyle = function(feature, resolution) {
+
+    var numberOfPolice = feature.get('noofpolice');
+
+    // Check if such a feature has been seen (Number of Police)
+    if (numberOfPolice == undefined) {
+        console.log("values not defined");
+        return [];
+    }
+
+    return [new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 8,
+          fill: new ol.style.Fill({
+            color: 'rgba(20,150,200,0.3)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: 'rgba(20,130,150,0.8)',
+            width: 1
+          })
+        }),
+        text: new ol.style.Text({
+          font: '14px Helvetica, sans-serif',
+          text: numberOfPolice.toString(),
+          fill: new ol.style.Fill({
+            color: "#000"
+          }),
+          stroke: new ol.style.Stroke({
+            color: "#FFF",
+            width: 3
+          })
+        })
+    })];
+}

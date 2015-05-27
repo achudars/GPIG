@@ -4,3 +4,5 @@
 GeoServerData/logs/*
 GeoServerData/temp/*
 GeoServerData/gwc/*
+/C:\nppdf32Log\debuglog.txt
+*.txt

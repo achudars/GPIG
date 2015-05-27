@@ -15,8 +15,15 @@ var neighbourhoodsStatsTitle = 'Neighbourhoods Crime Stats';
 var centroidsType = 'neighbourhoods-centroids';
 var centroidsTitle = 'Neighbourhood Centroids';
 
-var center = {lat: 53.958647, long: -1.082995};
-var zoom = {min: 13, default: 15, max: 16};
+var center = {
+    lat: 53.958647,
+    long: -1.082995
+};
+var zoom = {
+    min: 13,
+    default: 15,
+    max: 16
+};
 
 var infoFormat = 'application/json';
 
@@ -49,25 +56,25 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = filterValue+'AREA:' + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = filterValue + 'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
         // TODO: Add filters to the viewparams
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
 
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
-        });
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
+            });
     },
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
@@ -85,23 +92,23 @@ var centroidsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = filterValue+'AREA:' + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = filterValue + 'AREA:' + transformed.join('\\\,') + '\\\,4326';
 
         // TODO: Add filters to the viewparams
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + centroidsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + centroidsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            centroidsSource.addFeatures(centroidsSource.readFeatures(response));
-        });
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                centroidsSource.addFeatures(centroidsSource.readFeatures(response));
+            });
     },
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
@@ -142,14 +149,18 @@ var map = new ol.Map({
         new ol.layer.Tile({
             title: 'Street Map',
             group: "background",
-            source: new ol.source.MapQuest({layer: 'osm'})
+            source: new ol.source.MapQuest({
+                layer: 'osm'
+            })
         }),
         // MapQuest imagery
         new ol.layer.Tile({
             title: 'Aerial Imagery',
             group: "background",
             visible: false,
-            source: new ol.source.MapQuest({layer: 'sat'})
+            source: new ol.source.MapQuest({
+                layer: 'sat'
+            })
         }),
         // MapQuest hybrid (uses a layer group)
         new ol.layer.Group({
@@ -158,10 +169,14 @@ var map = new ol.Map({
             visible: false,
             layers: [
                 new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'sat'})
+                    source: new ol.source.MapQuest({
+                        layer: 'sat'
+                    })
                 }),
                 new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'hyb'})
+                    source: new ol.source.MapQuest({
+                        layer: 'hyb'
+                    })
                 })
             ]
         }),
@@ -285,7 +300,7 @@ map.on('singleclick', function(evt) {
     if (features.length > 0) {
         var feature = features[0];
         var stats_feature = feature.get("stats");
-        var stats = (typeof stats_feature !== 'undefined'? JSON.parse(stats_feature): false);
+        var stats = (typeof stats_feature !== 'undefined' ? JSON.parse(stats_feature) : false);
 
         // TODO: Stylise the stats JSON into a nice popup content HTML
         popup.setPosition(evt.coordinate);
@@ -299,3 +314,68 @@ map.on('singleclick', function(evt) {
         popup.show();
     }
 });
+
+function getCentroidLocations() {
+    var points = [];
+    var features = centroidsSource.getFeatures();
+    var p;
+    features.forEach(function(v) {
+        p = v.getGeometry().getCoordinates();
+        p = ol.proj.transform([p[0], p[1]], 'EPSG:3857', 'EPSG:4326');
+        points.push([p[1], p[0]]);
+    });
+    return points;
+}
+
+function connectCentroids() {
+    var directionsService = new google.maps.DirectionsService();
+    points = getCentroidLocations();
+    var start = points.shift();
+    var end = points.pop();
+    var waypts = [];
+    points.forEach(function(v) {
+        waypts.push({
+            location: v[0] + ',' + v[1],
+            stopover: false
+        });
+    });
+
+    var request = {
+        origin: start[0] + ',' + start[1],
+        destination: end[0] + ',' + end[1],
+        // can only have 8 waypoints
+        waypoints: waypts.slice(0, 8),
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    console.log(request);
+
+    directionsService.route(request, function(result, status) {
+        console.log(status);
+        console.log(result);
+        if (status == google.maps.DirectionsStatus.OK) {
+            var resultpoints = result.routes[0].overview_path;
+            var routeLatLn = [];
+            resultpoints.forEach(function(v) {
+                routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
+            });
+            var layerLines = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: [new ol.Feature({
+                        geometry: new ol.geom.LineString(routeLatLn, 'XY'),
+                        name: 'Line'
+                    })]
+                }),
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(255,0,255,1)',
+                        width: 2
+                    }),
+                })
+            });
+            map.addLayer(layerLines);
+
+        }
+    });
+}
+

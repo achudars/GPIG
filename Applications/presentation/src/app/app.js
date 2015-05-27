@@ -5,6 +5,7 @@
  * @require LayersControl.js
  * @require Stats.js
  * @require Style.js
+ * @require PoliceDistribution.js
  */
 
 // ========= config section ================================================
@@ -65,8 +66,6 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             'srsname='+ projection.code_ + '&' +
             'viewparams=' + viewparams;
 
-          
-
         $.ajax({
             url: encodeURI(url)
         })
@@ -99,11 +98,10 @@ var incidentsSource = new ol.source.ServerVector({
             'srsname='+ projection.code_ +
             '&CQL_FILTER={{CQLFILTER}}';
 
-       var cqlFilterBBox =  "BBOX(geom, "+extent.join(',')+",'"+projection.code_+"')";
-       var cqlFilter = cqlFilterBBox + incidentsFilterVal;
-        
-       url = url.replace('{{CQLFILTER}}', cqlFilter);
-        
+        var cqlFilterBBox =  "BBOX(geom, "+extent.join(',')+",'"+projection.code_+"')";
+        var cqlFilter = cqlFilterBBox + incidentsFilterVal;
+
+        url = url.replace('{{CQLFILTER}}', cqlFilter);
 
         $.ajax({
             url: encodeURI(url)
@@ -125,28 +123,29 @@ var incidentsClusterSource = new ol.source.Cluster({
 });
 
 // Listen to the events to recalculate the encapsulated crime types
-function recalculateClusterInfo(feature) {
-    var clustered = feature.get('features');
-    var crimes = clustered.reduce(function(currentValue, element) {
-        var crime = element.get('crime');
-        if (crime && currentValue.indexOf(crime) == -1) {
-            currentValue.push(crime);
-        }
-
-        return currentValue;
-    }, []).sort();
-
-    if (feature.get('crime') != crimes) {
-        feature.set('crime', crimes);
-    }
-
-    if (feature.get('size') != clustered.length) {
-        feature.set('size', clustered.length);
-    }
-}
-
 incidentsClusterSource.on('addfeature', function(evt) {
     var feature = evt.feature;
+
+    function recalculateClusterInfo(feature) {
+        var clustered = feature.get('features');
+        var crimes = clustered.reduce(function(currentValue, element) {
+            var crime = element.get('crime');
+            if (crime && currentValue.indexOf(crime) == -1) {
+                currentValue.push(crime);
+            }
+
+            return currentValue;
+        }, []).sort();
+
+        if (feature.get('crime') != crimes) {
+            feature.set('crime', crimes);
+        }
+
+        if (feature.get('size') != clustered.length) {
+            feature.set('size', clustered.length);
+        }
+    }
+
     recalculateClusterInfo(feature);
 });
 
@@ -298,9 +297,6 @@ function getLayerFromFeature(feature) {
     return found;
 }
 
-// TODO: There might be a nicer way to create these functions, in essence it is about
-// setting a variable, but also raising/lowering a flag and re-rendering
-
 // Special features (hover/highlight etc.)
 function setSpecialFeature(key, feature, redraw) {
     if (redraw == undefined) {
@@ -372,11 +368,15 @@ map.on('pointermove', function(evt) {
     }
 });
 
+var selectedNeighbourhoods = [];
+var selectedNeighbourhoodsNames = [];
+
 // Capture single clicks (for both incidents and stats)
 map.on('singleclick', function(evt) {
-    // Vector source has all the features available directly, perfect!
-    var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
+    selectedNeighbourhoods.push(evt.coordinate);
+    selectedNeighbourhoodsNames.push(neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate)[0].get('name'));
 
+    var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
     if (features.length > 0) {
         var feature = features[0];
 

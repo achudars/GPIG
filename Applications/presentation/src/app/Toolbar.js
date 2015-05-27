@@ -5,19 +5,24 @@ $( document ).ready(function() {
     //add Listeners
     //when inputs change
     $("#ui-toolbox input[type='checkbox'], #ui-toolbox input.datepickers").change(function(){
-        applyFilters();
+        // applyFilters();
     });
 
     //select buttons clicked
     $("#ui-toolbox #selectAll").click(function(e){
         e.preventDefault();
          $("#ui-toolbox input[type='checkbox']").prop("checked",true);
-         applyFilters();
+         // applyFilters();
     });
 
     $("#ui-toolbox #deselectAll").click(function(e){
         e.preventDefault();
          $("#ui-toolbox input[type='checkbox']").prop("checked",false);
+         // applyFilters();
+    });
+
+    $("#ui-toolbox #applyFilters").click(function(e){
+        e.preventDefault();
          applyFilters();
     });
 
@@ -107,3 +112,4 @@ function formatDate(date){
     pieces.reverse();
     return pieces.join('-');
 }
+
