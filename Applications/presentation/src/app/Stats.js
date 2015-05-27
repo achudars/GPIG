@@ -17,17 +17,115 @@
 function generatePopupContent(feature, popup) {
     // Currently creates a pie chart, can use the other functions
     // to create other types of charts
-    return generatePopupPie(feature, popup);
+    
+    var contents = generatePopupPie(feature, popup);
+    
+    generatePopupCharts(feature, popup);
+    
+    return contents;
 }
 
 function generatePopupCharts(feature, popup) {
-    var stats2 = feature.get('periodicstats'), limit = 5;
-    stats2 = (typeof stats2 !== 'undefined'? JSON.parse(stats2): false);
+    var periodicstats = feature.get('stats2'), limit = 5, title="", crimeCounts = 0;
+    periodicstats = (typeof periodicstats !== 'undefined'? JSON.parse(periodicstats): false);
 
-    if(!stats2) return "";
+    if(!periodicstats) return "";
 
+    //get array of names of highest crimes
     var someCrimes = getBiggestCrimeNames(feature, limit);
-    addPlot(someCrimes, stats2, popup);
+    //get dates
+    var crimeCategories= getCrimeCategories(periodicstats, someCrimes[0]);
+   
+   //construct array that's supported by charts
+    var crimeData = someCrimes.map(function(element) {
+                title = element.replace(/-/g, ' ');
+                title = title.charAt(0).toUpperCase() + title.slice(1);
+                crimeCounts = getCrimeCounts(periodicstats, element );
+                return {name: title, data: crimeCounts};
+    });
+    
+    //add element in popup
+     if ($(popup.getElement()).find("#plots")[0]== undefined) {
+        var crimeDiv = $("<div>", {id :"plots"});
+        $(popup.getElement()).append(crimeDiv);
+    }
+    
+     $(popup).on('didShow', function(event) {
+        $(crimeDiv).highcharts({
+            title: {
+                text: "Crime rate over time",
+                x: 0 //center
+            },
+            xAxis: {
+                categories: crimeCategories,
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Crime count'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            series: crimeData
+        });
+    });
+    
+
+    
+}
+
+
+function getCrimeCounts(periodicstats, crimeName ){
+    var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
+    if (crimeArray.length < 1) return 0;
+    
+    crimeArray = crimeArray.sort(function(a,b){
+        return new Date(a.date) - new Date(b.date);
+    });
+    
+     var crimeCounts = crimeArray.map(function(crime) {
+        return crime.count;
+    });
+    
+    return crimeCounts;
+}
+
+
+function addPlot(crimeName, periodicstats,popup) {
+    var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
+
+    if (crimeArray.length < 2) return "";
+
+   
+    crimeArray = crimeArray.sort(function(a,b){
+        return new Date(a.date) - new Date(b.date);
+    });
+
+   
+
+    var crimeCounts = crimeArray.map(function(crime) {
+        return crime.count;
+    });
+
+   
+}
+
+function getCrimeCategories(periodicstats, crimeName){
+    var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
+
+    var crimeCategories = crimeArray.map(function(crime) {
+        return crime.date;
+    }).sort(function(a,b){
+        return new Date(a.date) - new Date(b.date);
+    });
+  
+    return crimeCategories;
 }
 
 function getBiggestCrimeNames(feature, limit) {
@@ -49,56 +147,6 @@ function getBiggestCrimeNames(feature, limit) {
 
 }
 
-function addPlot(crimeName, stats2,popup) {
-    var crimeArray = $.grep(stats2, function(e){ return e.crime == crimeName; });
-
-    if (crimeArray.length < 2) return "";
-
-    if ($(popup.getElement()).find("#"+crimeName+"div")[0]== undefined) {
-        var crimeDiv = $("<div>", {id :crimeName+"div"});
-        $(popup.getElement()).append(crimeDiv);
-    }
-
-    crimeArray = crimeArray.sort(function(a,b){
-        return new Date(a.date) - new Date(b.date);
-    });
-
-    var crimeCategories = crimeArray.map(function(crime) {
-        return crime.date;
-    });
-
-    var crimeCounts = crimeArray.map(function(crime) {
-        return crime.count;
-    });
-
-    $(popup).on('didShow', function(event) {
-        $(crimeDiv).highcharts({
-            title: {
-                text: crimeName,
-                x: -20 //center
-            },
-            xAxis: {
-                categories: crimeCategories,
-                title: {
-                    text: 'Date'
-                }
-            },
-            yAxis: {
-                title: {
-                    text: 'Crime count'
-                },
-                plotLines: [{
-                    value: 0,
-                    width: 1,
-                    color: '#808080'
-                }]
-            },
-            series: [{showInLegend: false,
-                data: crimeCounts
-            }]
-        });
-    });
-}
 
 function generatePopupPie(feature, popup) {
     // Look if feature has stats (neighbourhood)
