@@ -1,0 +1,97 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--62c51a70:14d90c601f7:-8000</id>
+  <name>neighbourhood-statsistics</name>
+  <nativeName>neighbourhood-statsistics</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
+  </namespace>
+  <title>neighbourhood-statsistics</title>
+  <keywords>
+    <string>neighbourhood-statsistics</string>
+    <string>features</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, &#xd;
+  DATUM[&quot;World Geodetic System 1984&quot;, &#xd;
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], &#xd;
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], &#xd;
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], &#xd;
+  UNIT[&quot;degree&quot;, 0.017453292519943295], &#xd;
+  AXIS[&quot;Geodetic longitude&quot;, EAST], &#xd;
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], &#xd;
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>-8.65084760396694</minx>
+    <maxx>1.76727729695341</maxx>
+    <miny>49.8619910709035</miny>
+    <maxy>60.8629786793124</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-8.65084760396694</minx>
+    <maxx>1.76727729695341</maxx>
+    <miny>49.8619910709035</miny>
+    <maxy>60.8629786793124</maxy>
+    <crs>GEOGCS[&quot;WGS84(DD)&quot;, &#xd;
+  DATUM[&quot;WGS84&quot;, &#xd;
+    SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], &#xd;
+  PRIMEM[&quot;Greenwich&quot;, 0.0], &#xd;
+  UNIT[&quot;degree&quot;, 0.017453292519943295], &#xd;
+  AXIS[&quot;Geodetic longitude&quot;, EAST], &#xd;
+  AXIS[&quot;Geodetic latitude&quot;, NORTH]]</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>neighbourhood-statsistics</name>
+        <sql>SELECT * FROM (SELECT gid, name, geom, &#xd;
+(SELECT COUNT(*) FROM incidents i WHERE ST_Within(i.geom, n.geom) &#xd;
+AND date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%])) AS crimecount, &#xd;
+(SELECT array_to_json(array_agg(row_to_json(i)))::text FROM &#xd;
+(SELECT crime, COUNT(*) AS count FROM incidents i WHERE ST_Within(i.geom, n.geom) AND&#xd;
+date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY crime) i) AS stats,&#xd;
+(SELECT array_to_json(array_agg(row_to_json(i)))::text FROM &#xd;
+(SELECT crime, COUNT(*) AS count, date FROM incidents i WHERE ST_Within(i.geom, n.geom) AND&#xd;
+date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY crime, date) i) AS stats2&#xd;
+FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%AREA%))) t1
+</sql>
+        <escapeSql>false</escapeSql>
+        <keyColumn>gid</keyColumn>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+        <parameter>
+          <name>AREA</name>
+          <defaultValue>-180,-90,180,90,4326</defaultValue>
+          <regexpValidator>^([\.\-+0-9]+(\\)*?,\s*){4}[A-Z:0-9]+$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>CRIME</name>
+          <defaultValue>crime</defaultValue>
+          <regexpValidator>^((&apos;[\w\-\s\d]*&apos;),\s*)*(&apos;[\w\-\s\d]*&apos;)$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>ENDDATE</name>
+          <defaultValue>2100-01-01</defaultValue>
+          <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
+        </parameter>
+        <parameter>
+          <name>STARTDATE</name>
+          <defaultValue>1970-01-01</defaultValue>
+          <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--285b7e02:14d4812a9f4:-7ffd</id>
+  </store>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

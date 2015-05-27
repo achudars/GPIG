@@ -20,8 +20,120 @@ var app = window.app;
  *                      should avoid calling functions on the popup)
  */
 
-function generatePopupContent(feature, popup) {
+function generatePopupContent(feature, popup){
+
+    var contents = generatePopupPie(feature, popup);
+
+
+
+   // generatePopupCharts(feature, popup);
+
+
+    return contents;
+}
+
+function generatePopupCharts(feature, popup){
+
+    var stats2 = feature.get('stats2'), limit = 5;
+
+     stats2 = (typeof stats2 !== 'undefined'? JSON.parse(stats2): false);
+
+    if(!stats2) return "";
+ 
+    
+   
+    var someCrimes = getBiggestCrimeNames(feature, limit);
+    
+    addPlot(someCrimes, stats2, popup);
+
+    //var drugs = $.grep(stats2, function(e){ return e.crime == 'drugs2'; });
+
+    //console.log(drugs.length == 0);
+
+
+}
+
+function getBiggestCrimeNames(feature, limit){
+    var stats = feature.get('stats');
+    
+     stats = (typeof stats !== 'undefined'? JSON.parse(stats): false);
+    
+     // Get the data from stats, sort it, and merge if needed
+     //GET BIGGER STATS, DO NOT REVERSE THIS!!!!!!
+    if (stats.length > 1) {
+        stats = stats.sort(function(a, b) {
+            return b.count - a.count;
+        });
+    }
+
+    var data = stats.slice(0, limit).map(function(element) {
+        return element.crime;
+    });
+    
+    return data;
+    
+}
+
+function addPlot(crimeName, stats2,popup){
+    var crimeArray = $.grep(stats2, function(e){ return e.crime == crimeName; });
+
+    if(crimeArray.length < 2) return "";
+
+    if($(popup.getElement()).find("#"+crimeName+"div")[0]== undefined){
+        var crimeDiv = $("<div>", {id :crimeName+"div"});
+        $(popup.getElement()).append(crimeDiv);
+    }
+    
+    
+    crimeArray = crimeArray.sort(function(a,b){
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    var crimeCategories = crimeArray.map(function(crime) {
+        return crime.date;
+    });
+    
+    var crimeCounts = crimeArray.map(function(crime) {
+        return crime.count;
+    });
+    
+    $(popup).on('didShow', function(event) {
+
+        $(crimeDiv).highcharts({
+            title: {
+                text: crimeName,
+                x: -20 //center
+            },
+            xAxis: {
+                categories: crimeCategories,
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Crime count'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            series: [{showInLegend: false,      
+                data: crimeCounts
+            }]
+        });
+
+
+    });
+
+
+}
+
+function generatePopupPie(feature, popup) {
     // Look if feature has stats (neighbourhood)
+
     if (feature.get('stats')) {
         var stats = feature.get('stats');
         stats = (typeof stats !== 'undefined'? JSON.parse(stats): false);
@@ -38,9 +150,10 @@ function generatePopupContent(feature, popup) {
             }
 
             // Get the data from stats, sort it, and merge if needed
+            //GET BIGGER STATS, DO NOT REVERSE THIS!!!!!!
             if (stats.length > 1) {
                 stats = stats.sort(function(a, b) {
-                    return a.count - b.count;
+                    return b.count - a.count;
                 });
             }
 

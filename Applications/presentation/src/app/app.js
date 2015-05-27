@@ -15,7 +15,7 @@ var featurePrefix = 'crime';
 var center = {lat: 53.958647, long: -1.082995};
 var zoom = {min: 14, default: 16, max: 19};
 
-var neighbourhoodsStatsType = 'neighbourhoods-stats';
+var neighbourhoodsStatsType = 'neighbourhood-statsistics';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Stats';
 
 var incidentsType = 'incidents';
@@ -80,6 +80,8 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         minZoom: zoom.min
     }))
 });
+
+
 
 // Incidents (as a vector for clustering/styling)
 var incidentsFilterVal = "";
@@ -255,16 +257,15 @@ var map = new ol.Map({
             style: function(feature, resolution) {
                 return app.sharedStyle.generateNeighbourhoodStyle(feature, resolution);
             },
-            visible: false
+            visible: true
         }),
-
         new ol.layer.Vector({
             source: incidentsClusterSource,
             title: incidentsTitle,
             style: function(feature, resolution) {
                 return app.sharedStyle.generateIncidentStyle(feature, resolution);
             },
-            visible: true
+            visible: false
         })
     ],
 
