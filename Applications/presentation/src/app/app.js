@@ -3,6 +3,7 @@
  *
  * @require Popup.js
  * @require LayersControl.js
+ * @require FiltersControl.js
  * @require Stats.js
  * @require Style.js
  * @require PoliceDistribution.js
@@ -14,7 +15,7 @@ var featurePrefix = 'crime';
 
 // By default center around York
 var center = {lat: 53.958647, long: -1.082995};
-var zoom = {min: 14, default: 16, max: 19};
+var zoom = {min: 15, default: 15, max: 19};
 
 var neighbourhoodsStatsType = 'neighbourhood-statsistics';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Stats';
@@ -27,15 +28,15 @@ var infoFormat = 'application/json';
 // =========================================================================
 
 // Projection for the map
+// create a new popup with a close box
+// the popup will draw itself in the popup div container
+// autoPan means the popup will pan the map if it's not visible (at the edges of the map).
 var proj = new ol.proj.Projection({
     code: 'http://www.opengis.net/gml/srs/epsg.xml#4326',
     axis: 'enu'
 });
 ol.proj.addEquivalentProjections([ol.proj.get('EPSG:4326'), proj]);
 
-// create a new popup with a close box
-// the popup will draw itself in the popup div container
-// autoPan means the popup will pan the map if it's not visible (at the edges of the map).
 var popup = new app.Popup({
     element: document.getElementById('popup'),
     closeBox: true,
@@ -46,7 +47,6 @@ var popup = new app.Popup({
  *  Sources
  */
 
-filterValue = "";
 // Neighbourhoods (+ stats)
 var neighbourhoodsStatsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
@@ -57,7 +57,11 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     loader: function(extent, resolution, projection) {
         // Transform the extent to view params for the request
         var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = filterValue+"AREA:" + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
+
+        if (this.filter) {
+            viewparams += ";" + this.filter;
+        }
 
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
@@ -80,10 +84,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     }))
 });
 
-
-
 // Incidents (as a vector for clustering/styling)
-var incidentsFilterVal = "";
 var incidentsSource = new ol.source.ServerVector({
     format: new ol.format.WFS({
         featureNS: 'http://localhost',
@@ -98,8 +99,12 @@ var incidentsSource = new ol.source.ServerVector({
             'srsname='+ projection.code_ +
             '&CQL_FILTER={{CQLFILTER}}';
 
-        var cqlFilterBBox =  "BBOX(geom, "+extent.join(',')+",'"+projection.code_+"')";
-        var cqlFilter = cqlFilterBBox + incidentsFilterVal;
+        var cqlFilterBBox =  "BBOX(geom, " + extent.join(',') + ",'" + projection.code_ + "')";
+        var cqlFilter = cqlFilterBBox;
+
+        if (this.cqlFilter) {
+            cqlFilter += " AND " + this.cqlFilter;
+        }
 
         url = url.replace('{{CQLFILTER}}', cqlFilter);
 
@@ -165,10 +170,14 @@ var map = new ol.Map({
                     title: "Base Layer",
                     exclusive: true
                 },
-                'default': {
+                overlays: {
                     title: "Overlays"
                 }
             }
+        }),
+
+        new app.FiltersControl({
+            sources: [neighbourhoodsStatsSource, incidentsSource]
         })
     ]),
 
@@ -253,14 +262,17 @@ var map = new ol.Map({
         new ol.layer.Vector({
             source: neighbourhoodsStatsSource,
             title: neighbourhoodsStatsTitle,
+            group: 'overlays',
             style: function(feature, resolution) {
                 return app.sharedStyle.generateNeighbourhoodStyle(feature, resolution);
             },
             visible: true
         }),
+
         new ol.layer.Vector({
             source: incidentsClusterSource,
             title: incidentsTitle,
+            group: 'overlays',
             style: function(feature, resolution) {
                 return app.sharedStyle.generateIncidentStyle(feature, resolution);
             },
@@ -277,8 +289,9 @@ var map = new ol.Map({
     })
 });
 
+
 /**
- *  Interactions
+ *  Helpers
  */
 
 function getLayerFromFeature(feature) {
@@ -314,31 +327,61 @@ function setSpecialFeature(key, feature, redraw) {
     }
 
     if (previousFeature != undefined && typeof previousFeature != undefined) {
-        previousFeature.set(key, false);
+        // unset does not work, and setting to false is not always correct
+        if (previousFeature.values_[key])
+            delete previousFeature.values_[key];
+
         if (redraw) {
-            var styleFunction = getLayerFromFeature(previousFeature).getStyleFunction();
-            previousFeature.setStyle(styleFunction(previousFeature, null));
+            var layer = getLayerFromFeature(previousFeature);
+
+            if (layer) {
+                var styleFunction = getLayerFromFeature(previousFeature).getStyleFunction();
+                previousFeature.setStyle(styleFunction(previousFeature, null));
+            }
         }
 
         delete features[key];
     }
 
-    if (feature != undefined) {
+    if (feature != undefined &&  typeof feature != undefined) {
         feature.set(key, true);
-        var styleFunction = getLayerFromFeature(feature).getStyleFunction();
-        feature.setStyle(styleFunction(feature, null));
+
+        if (redraw) {
+            var styleFunction = getLayerFromFeature(feature).getStyleFunction();
+            feature.setStyle(styleFunction(feature, null));
+        }
+
         features[key] = feature;
     }
 }
 
-// when the popup is closed, clear the highlight
-$(popup).on('close', function() {
-    // Clear the highlight
+
+/**
+ *  Interactions
+ */
+
+function resetView() {
+    var view = map.getView();
+
+    map.beforeRender(new ol.animation.pan({
+        duration: 750,
+        source: view.getCenter()
+    }), new ol.animation.zoom({
+        duration: 750,
+        resolution: view.getResolution()
+    }));
+
+    view.setCenter(ol.proj.transform([center.long, center.lat], 'EPSG:4326', view.getProjection()));
+    view.setZoom(zoom.default);
+}
+
+$(popup).on('close', function(event) {
     setSpecialFeature('highlighted', null);
-});
+})
 
 // Capture hover events
 map.on('pointermove', function(evt) {
+    // Ignore panning events
     if (evt.dragging) {
         return;
     }
@@ -368,14 +411,8 @@ map.on('pointermove', function(evt) {
     }
 });
 
-var selectedNeighbourhoods = [];
-var selectedNeighbourhoodsNames = [];
-
 // Capture single clicks (for both incidents and stats)
 map.on('singleclick', function(evt) {
-    selectedNeighbourhoods.push(evt.coordinate);
-    selectedNeighbourhoodsNames.push(neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate)[0].get('name'));
-
     var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
     if (features.length > 0) {
         var feature = features[0];
@@ -386,10 +423,10 @@ map.on('singleclick', function(evt) {
          if (typeof generatePopupContent == 'function') {
             $("#statsModal").modal('show');
             setFeature(feature);
-            
+
             generatePopupContent();
         }
-             
+
         //PLEASE DON'T REFACTOR - WORK IN PROGRESS
 
         /*
@@ -401,7 +438,6 @@ map.on('singleclick', function(evt) {
 
         popup.show();
         */
-  
     } else {
         setSpecialFeature('highlighted', null);
         $("#statsModal").modal('hide');

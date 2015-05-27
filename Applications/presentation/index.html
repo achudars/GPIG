@@ -6,53 +6,33 @@
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="src/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="src/font-awesome/css/font-awesome.css">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="src/ol3/ol.css">
     <link rel="stylesheet" href="src/css/Popup.css">
     <link rel="stylesheet" href="src/css/LayersControl.css">
+    <link rel="stylesheet" href="src/css/Main.css">
+
+    <!-- jQuery/jQuery UI -->
     <link rel="stylesheet" href="src/jquery/jquery-ui-1.11.4/jquery-ui.css">
-    <link rel="stylesheet" href="src/css/Toolbar.css">
-    <link rel="stylesheet" href="src/css/Stats.css">
-    <style>
-      .layers-control {
-        position: fixed;
-        bottom: 10px;
-        top: auto;
-      }
-      html, body, #map {
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-      }
-      body {
-        padding-top: 50px;
-      }
-      .navbar .navbar-brand {
-        font-weight: bold;
-        font-size: 25px;
-        color: white;
-      }
-      .ol_legend{
-        position: fixed;
-        top: 300px;
-        left: 15px;
-        padding-top: 5px;
-        border-radius: 5px;
-        background-color: white;
-      }
-      #policeNo{
-        width: 100px;
-      }
-    </style>
-    
-    <script src="src/ol3/ol-debug.js"></script>
     <script src="src/jquery/jquery.js"></script>
     <script src="src/jquery/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" href="src/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="src/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="src/bootstrap/css/bootstrap-multiselect.css">
+    <script src="src/bootstrap/js/bootstrap.js"></script>
+    <script src="src/bootstrap/js/bootstrap-multiselect.js"></script>
+
+    <!-- Highcharts -->
     <script src="src/Highcharts/js/highcharts.js"></script>
     <script src="src/Highcharts/js/themes/grid-light.js"></script>
-    <script src="src/bootstrap/js/bootstrap.js"></script>
-    
+
+    <!-- OpenLayers -->
+    <link rel="stylesheet" href="src/ol3/ol.css">
+    <script src="src/ol3/ol-debug.js"></script>
+
     <title>Crime-Aid</title>
   </head>
   <body>
@@ -81,7 +61,7 @@
        
       
       
-    <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+    <!-- <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
       <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -110,8 +90,8 @@
             </div>
         </div>
       </div>
-    </div>
-    
+    </div> -->
+
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -126,67 +106,25 @@
           <li class="dropdown">
             <a id="toolsDrop" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-globe" style="color: white"></i>&nbsp;&nbsp;Tools <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="map.getView().setCenter(center); map.getView().setZoom(zoom); return false;"><i class="fa fa-arrows-alt"></i>&nbsp;&nbsp;Zoom To Full Extent</a></li>
+              <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="resetView(); return false;"><i class="fa  fa-map-marker"></i>&nbsp;&nbsp;Reset to York</a></li>
             </ul>
           </li>
         </ul>
       </div><!--/.navbar-collapse -->
     </div>
-     <div id ="ui-toolbox">
-        <div class="filter">
-            <label>Choose types of crime:</label><br/>
-            <div class="filterDiv">
-                <input type="checkbox" name="crimeType" value="anti-social-behaviour" checked> Antisocial Behaviour <br/>
-                <input type="checkbox" name="crimeType" value="bicycle-theft" checked> Bicycle-Theft<br/>
-                <input type="checkbox" name="crimeType" value="burglary" checked> Burglary<br/>
-                <input type="checkbox" name="crimeType" value="criminal-damage-arson" checked> Criminal Damage - Arson
-            </div>
-            <div class="filterDiv">
-                <input type="checkbox" name="crimeType" value="drugs" checked> Drugs<br/>
-                <input type="checkbox" name="crimeType" value="other-crime" checked> Other Crime <br/>
-                <input type="checkbox" name="crimeType" value="other-theft" checked> Other theft <br/>
-                <input type="checkbox" name="crimeType" value="public-order" checked> Public Order
-            </div>
-            <div class="filterDiv">
-                <input type="checkbox" name="crimeType" value="possession-of-weapons" checked> Possession of Weapons<br/>
-                <input type="checkbox" name="crimeType" value="robbery" checked> Robbery<br/>
-                <input type="checkbox" name="crimeType" value="shoplifting" checked> Shoplifting  <br/>
-                <input type="checkbox" name="crimeType" value="theft-from-the-person" checked> Theft From The Person
-            </div>
-            <div class="filterDiv">
-                <input type="checkbox" name="crimeType" value="vehicle-crime" checked> Vehicle Crime <br/>
-                <input type="checkbox" name="crimeType" value="violent-crime" checked> Violent Crimes
-            </div>
-            <div class="filterDiv">
-                <button class="btns" id="selectAll">Select All</button><br/>
-                <button class="btns" id="deselectAll">Deselect All</button><br/>
-                <button class="btns" id="applyFilters">Apply Filters</button><br/>
-            </div>
-        </div>
-        <div class="line"></div>
-        <div class="filter">
-            <label>Choose dates of crimes:</label><br/>
-            <div class="filterDiv">
-                <span class="timeSpan">From date:</span> <input type="text" id="fromDate" class="datepickers" value="01-11-2013"> <br/><br/>
-                <span class="timeSpan">To date: </span><input type="text" id="toDate" class="datepickers" value="03-06-2015">
-            </div>
-        </div>
-        <div class="line"></div>
-        
+     <!-- <div id ="ui-toolbox">
         <div class="filter">
             <label>Input police resources to be distributed:</label><br/>
             <div class="filterDiv">
                  <button type="button" class="btn btn-primary btn-lg" id="policeResourceBtn" data-toggle="modal" data-target="#policeModal" >Police</button><br/>
             </div>
         </div>
-        <div class="line"></div>
-
-    </div>
+    </div> -->
     <div id="map">
       <div id="popup" class="ol-popup">
       </div>
     </div>
+    <!-- Load app later, so DOM has been created -->
     <script src="lib/app.js"></script>
   </body>
 </html>
-

@@ -1,0 +1,45 @@
+html, body, #map {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  padding-top: 50px;
+}
+
+/* Application style */
+
+.navbar .navbar-brand {
+  font-weight: bold;
+  font-size: 25px;
+  color: white;
+}
+
+.layers-control {
+  position: fixed;
+  bottom: 10px;
+  top: auto;
+}
+
+/* Filters control */
+
+.filters-control {
+    position: absolute;
+    bottom: auto;
+    top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    right: 10px;
+    left: auto;
+    background-color: white;
+    width: 200px;
+}
+
+.filters-control form {
+    position: relative;
+}
+
+.filters-control .btn {
+    width: 100%;
+}
