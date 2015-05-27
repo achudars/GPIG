@@ -322,11 +322,7 @@ app.Style.prototype.generatePoliceDistroStyle = function(feature, resolution) {
         return [];
     }
 
-    if (styles != undefined) {
-        return styles;
-    }
-
-    styles = [new ol.style.Style({
+    return [new ol.style.Style({
         image: new ol.style.Circle({
           radius: 8,
           fill: new ol.style.Fill({
@@ -349,6 +345,4 @@ app.Style.prototype.generatePoliceDistroStyle = function(feature, resolution) {
           })
         })
     })];
-    
-    return styles;
 }
