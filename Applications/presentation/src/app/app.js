@@ -383,6 +383,14 @@ map.on('singleclick', function(evt) {
         // Set the feature as highlighted and re-render
         setSpecialFeature('highlighted', feature);
 
+         if (typeof generatePopupContent == 'function') {
+             $("#statsModal").modal('show');
+            generatePopupContent(feature, "#statsModal");
+        }
+             
+        
+
+        /*
         if (typeof generatePopupContent == 'function') {
             var content = generatePopupContent(feature, popup);
             popup.setContent(content);
@@ -390,8 +398,11 @@ map.on('singleclick', function(evt) {
         }
 
         popup.show();
+        */
+  
     } else {
         setSpecialFeature('highlighted', null);
-        popup.hide();
+        $("#statsModal").modal('hide');
+        //popup.hide();
     }
 });
