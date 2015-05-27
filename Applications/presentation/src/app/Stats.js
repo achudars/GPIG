@@ -14,32 +14,64 @@
  *                      should avoid calling functions on the popup)
  */
 
-function generatePopupContent(feature, popup) {
+$( document ).ready(function() {
+    $(".chartTabs").click(function() {
+ 
+        $(".chartTabs").removeClass("selectedTab");
+        $(this).addClass("selectedTab");
+        generatePopupContent();
+        
+    });
+});
+
+var popupFeature;
+
+function setFeature(feature){
+    popupFeature= feature;
+}
+
+//PLEASE DON'T REFACTOR - WORK IN PROGRESS
+function generatePopupContent() {
     // Currently creates a pie chart, can use the other functions
     // to create other types of charts
+    var popup = "#statsModal";
+    var feature = popupFeature;
+    var selectedTab = $(".chartTabs.selectedTab").prop("id");
     
-   generatePopupPie(feature, popup);
     
-    generatePopupCharts(feature, popup);
+    // $("#plots").highcharts().destroy();
+   
+    
+    switch(selectedTab) {
+        case "pie":
+             generatePopupPie(feature, popup);
+            break;
+        case "overTime":
+            generatePopupCharts(feature, popup);
+            break;
+        default:
+           // default code block
+        }
+    
+   
     
 }
 
+//PLEASE DON'T REFACTOR - WORK IN PROGRESS
 function generatePopupCharts(feature, popup) {
     var periodicstats = feature.get('stats2'), limit = 5, title="", crimeCounts = 0;
     periodicstats = (typeof periodicstats !== 'undefined'? JSON.parse(periodicstats): false);
 
-    if(!periodicstats) return "";
-
     //get array of names of highest crimes
     var someCrimes = getBiggestCrimeNames(feature, limit);
-    //get dates
-    var crimeCategories= getCrimeCategories(periodicstats, someCrimes[0]);
+    //get dates TODO FIX THIS IS BAD
+    var crimeCategories= getCrimeCategories(periodicstats, someCrimes);
    
    //construct array that's supported by charts
     var crimeData = someCrimes.map(function(element) {
                 title = element.replace(/-/g, ' ');
                 title = title.charAt(0).toUpperCase() + title.slice(1);
-                crimeCounts = getCrimeCounts(periodicstats, element );
+                crimeCounts = getCrimeCounts(periodicstats, element,crimeCategories );
                 return {name: title, data: crimeCounts};
     });
     
@@ -66,13 +98,20 @@ function generatePopupCharts(feature, popup) {
                     color: '#808080'
                 }]
             },
+            tooltip:{
+                hideDelay: 5,
+                        backgroundColor: 'white',
+                        headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
+                        borderColor: 'black',
+                        borderWidth: 1
+            },
             series: crimeData
         });
  
     
 }
 
-
+//PLEASE DON'T REFACTOR - WORK IN PROGRESS
 function generatePopupPie(feature, popup) {
     // Look if feature has stats (neighbourhood)
     if (feature.get('stats')) {
@@ -106,7 +145,7 @@ function generatePopupPie(feature, popup) {
                 data.push({name: "Other crimes", y: other, color: app.sharedStyle.generateColour('other-crime')});
             }
 
-                $('#pie').highcharts({
+                $('#plots').highcharts({
                     chart: {
                         type: 'pie',
                         plotBackgroundColor: null,
@@ -161,32 +200,44 @@ function generatePopupPie(feature, popup) {
 }
 
 
-
-function getCrimeCounts(periodicstats, crimeName ){
+//PLEASE DON'T REFACTOR - WORK IN PROGRESS
+function getCrimeCounts(periodicstats, crimeName , crimeCategories){
     var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
     if (crimeArray.length < 1) return 0;
-    
+
     crimeArray = crimeArray.sort(function(a,b){
         return new Date(a.date) - new Date(b.date);
     });
     
-     var crimeCounts = crimeArray.map(function(crime) {
-        return crime.count;
+    var crimeCounts = crimeCategories.map(function(date) {
+        var counts=  $.grep(crimeArray, function(e){ return e.date == date; });
+        return (counts.length == 0 ? 0 : counts[0].count);
     });
     
+   
     return crimeCounts;
 }
 
+//PLEASE DON'T REFACTOR - WORK IN PROGRESS
 function getCrimeCategories(periodicstats, crimeName){
-    var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
-
-    var crimeCategories = crimeArray.map(function(crime) {
-        return crime.date;
-    }).sort(function(a,b){
-        return new Date(a.date) - new Date(b.date);
+    var dates = [], crimeCategories=[];
+    
+    for(var i = 0; i<crimeName.length; i++) {
+        dates = $.grep(periodicstats, function(e){ 
+            return (e.crime == crimeName[i]) && (jQuery.inArray( e.date , crimeCategories )<0); 
+        });
+        crimeCategories = crimeCategories.concat(dates.map(function(d) {    
+            return d.date;
+        }));
+    }
+    
+    crimeCategories =crimeCategories.sort(function(a,b){
+        return new Date(a) - new Date(b);
     });
-  
+
     return crimeCategories;
+    
+    
 }
 
 function getBiggestCrimeNames(feature, limit) {

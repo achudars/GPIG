@@ -384,11 +384,13 @@ map.on('singleclick', function(evt) {
         setSpecialFeature('highlighted', feature);
 
          if (typeof generatePopupContent == 'function') {
-             $("#statsModal").modal('show');
-            generatePopupContent(feature, "#statsModal");
+            $("#statsModal").modal('show');
+            setFeature(feature);
+            
+            generatePopupContent();
         }
              
-        
+        //PLEASE DON'T REFACTOR - WORK IN PROGRESS
 
         /*
         if (typeof generatePopupContent == 'function') {

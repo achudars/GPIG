@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="src/css/LayersControl.css">
     <link rel="stylesheet" href="src/jquery/jquery-ui-1.11.4/jquery-ui.css">
     <link rel="stylesheet" href="src/css/Toolbar.css">
+    <link rel="stylesheet" href="src/css/Stats.css">
     <style>
       .layers-control {
         position: fixed;
@@ -58,13 +59,16 @@
     
     <div id="statsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
       <div class="modal-dialog">
-          <div class="modal-content" style="width: 1400px;">
+          <div class="modal-content" style="width: 700px;">
             <div class="modal-header">
-                Crimes
+                <button type="button" class="btn btn-default chartTabs selectedTab" id="pie">Pie Chart of Crimes</button>
+                <button type="button" class="btn btn-default chartTabs" id="overTime">Crimes Over Time</button>
+               <button type="button" class="btn btn-default chartTabs" id="overTime">TODO MORE STATS</button>
             </div>
             <div class="modal-body">
-                <div id="pie" style="display:inline-block;"></div>
-                <div id="plots" style="display:inline-block;"></div>
+
+                <div id="plots"></div>
+                 
               
                 
             </div>
