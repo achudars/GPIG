@@ -8,6 +8,23 @@ body {
   padding-top: 50px;
 }
 
+#map {
+    position: relative;
+}
+
+#map canvas {
+    position: absolute;
+}
+
+#drawer {
+    position: absolute;
+    top: 1px;
+    z-index: 2;
+    height: 100%;
+    width: 450px;
+    background-color: white;
+}
+
 /* Bootstrap additions */
 a.disabled,
 a.disabled:visited ,

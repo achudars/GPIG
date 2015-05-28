@@ -40,6 +40,8 @@ var styles = {
     incidents: new app.Style()
 };
 
+var statsDrawer = $("#drawer")[0];
+
 // Mode for the application
 const MODE = Object.freeze({INTERACTION: 0, ZOOM: 1, SELECTION: 2});
 var mode = MODE.INTERACTION;
@@ -358,7 +360,12 @@ function setMode(newMode, object) {
             }), new ol.animation.zoom({
                 resolution: view.getResolution(),
                 duration: 750
-            }));
+            }), function() {
+                // Hide the drawer
+                $(statsDrawer).hide("slide", {
+                    direction: "left"
+                }, 750);
+            });
 
             zoomState.feature.unset('dimmed');
             if (newMode != MODE.SELECTION) {
@@ -422,19 +429,25 @@ function setMode(newMode, object) {
             duration: 750,
             resolution: zoomState.resolution
         }), function() {
+            // Dimming
             zoomState.feature.set('dimmed', false);
             styles.neighbourhoods.dimmed = true;
             return false;
         });
 
         view.fitGeometry(zoomState.feature.getGeometry(), map.getSize(), {
-            padding: [50, 100, 100, 100],
+            padding: [50, 100, 100, 450],
             maxZoom: zoom.max
         });
 
         map.once('postrender', function() {
             // Restyle the layer/feature
             map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+
+            // Show the drawer
+            $(statsDrawer).show("slide", {
+                direction: "left"
+            }, 750);
         });
     }
 }
@@ -540,6 +553,12 @@ map.on('singleclick', function(evt) {
         var feature = features[0];
 
         if (mode == MODE.INTERACTION) {
+            // Populate our stats drawer
+            if (typeof generatePopupContent == 'function') {
+                var content = generatePopupContent(feature, content);
+                statsDrawer.innerHTML = content;
+            }
+
             setMode(MODE.ZOOMED, feature);
         } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
             setMode(MODE.INTERACTION);
@@ -574,28 +593,6 @@ map.on('singleclick', function(evt) {
                 }
             }
         }
-
-        //
-        //  if (typeof generatePopupContent == 'function') {
-        //     $("#statsModal").modal('show');
-        //     setFeature(feature);
-        //
-        //     generatePopupContent();
-        // }
-
-        //PLEASE DON'T REFACTOR - WORK IN PROGRESS
-
-        /*
-        if (typeof generatePopupContent == 'function') {
-            var content = generatePopupContent(feature, popup);
-            popup.setContent(content);
-            popup.setPosition(evt.coordinate);
-        }
-
-        popup.show();
-        */
-    } else {
-        // $("#statsModal").modal('hide');
     }
 });
 
