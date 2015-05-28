@@ -355,6 +355,13 @@ function setSpecialFeature(key, feature, redraw) {
     }
 }
 
+/**
+ *Initialise Police Distribution and assign click handlers
+ */
+
+var policDistributor = new app.PoliceDistributor(map,neighbourhoodsStatsSource);
+document.getElementById("policeResourceBtn").onclick = policDistributor.policeClick;
+document.getElementById("calculateBtn").onclick = policDistributor.distribute;
 
 /**
  *  Interactions

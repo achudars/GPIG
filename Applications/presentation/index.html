@@ -61,17 +61,17 @@
        
       
       
-    <!-- <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+     <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
       <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title">Police Resource Distribution</h4>
             </div>
-            <div class="modal-body">
+            <div class="modal-body"  style="overflow-y: scroll; max-height:300px;">
                 <p><b>Select the number of police you need for the area covered by the map</b></p>
               <div class="row">
-                  <div class="col-xs-3 col-xs-offset-3">
+                  <div >
                       <div class="input-group number-spinner">
                           <span class="input-group-btn data-dwn">
                               <button class="btn btn-default btn-info" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></button>
@@ -83,14 +83,15 @@
                       </div>
                   </div>
               </div>
+              <div id="modaltable" class="row"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="calculateDistribution();">Calculate Distribution</button>
+                <button id="calculateBtn" type="button" class="btn btn-primary">Calculate Distribution</button>
             </div>
         </div>
       </div>
-    </div> -->
+    </div> 
 
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="navbar-header">
@@ -109,14 +110,16 @@
               <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="resetView(); return false;"><i class="fa  fa-map-marker"></i>&nbsp;&nbsp;Reset to York</a></li>
             </ul>
           </li>
+          <li><label class="navbar-text" >Select Region for police distribution:</label><br/></li>
+          <li><button type="button" class="btn btn-primary" id="policeResourceBtn" value="Select Region">Select Region</button><br/></li>
         </ul>
       </div><!--/.navbar-collapse -->
     </div>
      <!-- <div id ="ui-toolbox">
         <div class="filter">
-            <label>Input police resources to be distributed:</label><br/>
+            <label>Select Region for police distribution:</label><br/>
             <div class="filterDiv">
-                 <button type="button" class="btn btn-primary btn-lg" id="policeResourceBtn" data-toggle="modal" data-target="#policeModal" >Police</button><br/>
+                 <button type="button" class="btn btn-primary" id="policeResourceBtn">Select Region</button><br/>
             </div>
         </div>
     </div> -->
