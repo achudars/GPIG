@@ -136,13 +136,14 @@ function generatePopupPie(feature, popup) {
                 return current + next.count;
             }, 0);
 
+            var style = new app.Style()
             var data = stats.slice(0, limit).map(function(element) {
                 var title = element.crime.replace(/-/g, ' ');
-                return {name: title.charAt(0).toUpperCase() + title.slice(1), y: element.count, color: app.sharedStyle.generateColour(element.crime)};
+                return {name: title.charAt(0).toUpperCase() + title.slice(1), y: element.count, color: style.generateColour(element.crime)};
             });
 
             if (other > 0) {
-                data.push({name: "Other crimes", y: other, color: app.sharedStyle.generateColour('other-crime')});
+                data.push({name: "Other crimes", y: other, color: style.generateColour('other-crime')});
             }
 
                 $('#plots').highcharts({

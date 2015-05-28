@@ -1,7 +1,6 @@
 /**
  * Add all your dependencies here.
  *
- * @require Popup.js
  * @require LayersControl.js
  * @require FiltersControl.js
  * @require Stats.js
@@ -28,20 +27,27 @@ var infoFormat = 'application/json';
 // =========================================================================
 
 // Projection for the map
-// create a new popup with a close box
-// the popup will draw itself in the popup div container
-// autoPan means the popup will pan the map if it's not visible (at the edges of the map).
 var proj = new ol.proj.Projection({
     code: 'http://www.opengis.net/gml/srs/epsg.xml#4326',
     axis: 'enu'
 });
 ol.proj.addEquivalentProjections([ol.proj.get('EPSG:4326'), proj]);
 
-var popup = new app.Popup({
-    element: document.getElementById('popup'),
-    closeBox: true,
-    autoPan: true
-});
+// Styling objects for different layers
+var styles = {
+    neighbourhoods: new app.Style(),
+    incidents: new app.Style()
+};
+
+// Mode for the application
+const MODE = Object.freeze({INTERACTION: 0, SELECTION: 1});
+var mode = MODE.INTERACTION;
+
+// Selected neighbourhoods
+var selectedNeighbourhoods = [];
+
+// Police distributor
+var policeDistributor = new app.PoliceDistributor();
 
 /**
  *  Sources
@@ -159,9 +165,6 @@ incidentsClusterSource.on('addfeature', function(evt) {
  */
 
 // Create the OL map
-// Add a layer switcher to the map with two groups:
-// 1. background, which will use radio buttons
-// 2. default (overlays), which will use checkboxes
 var map = new ol.Map({
     controls: ol.control.defaults().extend([
         new app.LayersControl({
@@ -181,15 +184,12 @@ var map = new ol.Map({
         })
     ]),
 
-    // add the popup as a map overlay
-    overlays: [popup],
-
-    // render the map in the 'map' div
+    // Render the map in the 'map' div
     // use the Canvas renderer
     target: document.getElementById('map'),
     renderer: 'canvas',
 
-    // layers
+    // Layers
     layers: [
         // Standard
         new ol.layer.Tile({
@@ -264,7 +264,7 @@ var map = new ol.Map({
             title: neighbourhoodsStatsTitle,
             group: 'overlays',
             style: function(feature, resolution) {
-                return app.sharedStyle.generateNeighbourhoodStyle(feature, resolution);
+                return styles.neighbourhoods.generateNeighbourhoodStyle(feature, resolution);
             },
             visible: true
         }),
@@ -274,7 +274,7 @@ var map = new ol.Map({
             title: incidentsTitle,
             group: 'overlays',
             style: function(feature, resolution) {
-                return app.sharedStyle.generateIncidentStyle(feature, resolution);
+                return styles.incidents.generateIncidentStyle(feature, resolution);
             },
             visible: false
         })
@@ -294,8 +294,32 @@ var map = new ol.Map({
  *  Helpers
  */
 
+function preventDefault(event) {
+    event.preventDefault();
+}
+
+function restyleLayer(layer) {
+    // Loop over all visible features on the layer and re-apply their style
+    var source = layer.getSource();
+    var styleFunction = layer.getStyleFunction();
+    var resolution = map.getView().getResolution();
+    var features = source.getFeatures();
+
+    for (var i = 0, l = features.length; i < l; i++) {
+        var feature = features[i];
+        feature.setStyle(styleFunction(feature, resolution));
+    }
+}
+
+function restyleFeature(feature) {
+    var layer = getLayerFromFeature(feature);
+    var styleFunction = layer.getStyleFunction();
+    var resolution = map.getView().getResolution();
+    feature.setStyle(styleFunction(feature, resolution));
+}
+
 function getLayerFromFeature(feature) {
-    var found = null;
+    var found = undefined;
     map.getLayers().forEach(function(layer) {
         if (!(layer instanceof ol.layer.Vector)) {
              return false;
@@ -308,6 +332,46 @@ function getLayerFromFeature(feature) {
     });
 
     return found;
+}
+
+function getLayerForTitle(title) {
+    var found = undefined;
+    map.getLayers().forEach(function(layer) {
+        if (layer.get('title') == title) {
+            found = layer;
+            return true;
+        }
+    });
+
+    return found;
+}
+
+function setMode(newMode) {
+    if (mode == newMode) {
+        return;
+    }
+
+    if (newMode == MODE.INTERACTION) {
+        mode = newMode;
+
+        // Alter the title of every selection button
+        $(".selection-toggle").text('Select Regions');
+
+        // Undim the neighbourhoods layer
+        styles.neighbourhoods.dimmed = false;
+        var layer = getLayerForTitle(neighbourhoodsStatsTitle);
+        restyleLayer(layer);
+
+    } else if (newMode == MODE.SELECTION) {
+        mode = newMode;
+
+        // Alter the title of every selection button
+        $(".selection-toggle").text('Cancel Selection');
+
+        styles.neighbourhoods.dimmed = true;
+        var layer = getLayerForTitle(neighbourhoodsStatsTitle);
+        restyleLayer(layer);
+    }
 }
 
 // Special features (hover/highlight etc.)
@@ -356,14 +420,6 @@ function setSpecialFeature(key, feature, redraw) {
 }
 
 /**
- *Initialise Police Distribution and assign click handlers
- */
-
-var policDistributor = new app.PoliceDistributor(map,neighbourhoodsStatsSource);
-document.getElementById("policeResourceBtn").onclick = policDistributor.policeClick;
-document.getElementById("calculateBtn").onclick = policDistributor.distribute;
-
-/**
  *  Interactions
  */
 
@@ -382,9 +438,28 @@ function resetView() {
     view.setZoom(zoom.default);
 }
 
-$(popup).on('close', function(event) {
-    setSpecialFeature('highlighted', null);
-})
+function toggleMode(event) {
+    if (mode == MODE.INTERACTION) {
+        setMode(MODE.SELECTION);
+
+        if (selectedNeighbourhoods.length > 0) {
+            $(".selection-required").removeClass("disabled");
+            $('a.selection-required').off("click", preventDefault);
+        }
+    } else if (mode == MODE.SELECTION) {
+        setMode(MODE.INTERACTION);
+
+        $(".selection-required").addClass("disabled");
+        $('a.selection-required').on("click", preventDefault);
+    }
+}
+
+function distributeForces(event) {
+    if ($(event.target).hasClass("disabled"))
+        return;
+
+    policeDistributor.startDistributionFlow();
+}
 
 // Capture hover events
 map.on('pointermove', function(evt) {
@@ -418,21 +493,50 @@ map.on('pointermove', function(evt) {
     }
 });
 
-// Capture single clicks (for both incidents and stats)
+// Capture single clicks (in both modes)
 map.on('singleclick', function(evt) {
     var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
     if (features.length > 0) {
         var feature = features[0];
 
-        // Set the feature as highlighted and re-render
-        setSpecialFeature('highlighted', feature);
+        if (mode == MODE.INTERACTION) {
 
-         if (typeof generatePopupContent == 'function') {
-            $("#statsModal").modal('show');
-            setFeature(feature);
+        } else if (mode == MODE.SELECTION) {
+            // Toggle the dimming on the feature
+            var dimmed = feature.get('dimmed');
+            if (dimmed == undefined) {
+                feature.set('dimmed', false);
+                selectedNeighbourhoods.push(feature);
+            } else {
+                delete feature.values_['dimmed'];
+                var idx = selectedNeighbourhoods.indexOf(feature);
+                if (idx != -1) {
+                    selectedNeighbourhoods.splice(idx, 1);
+                }
+            }
 
-            generatePopupContent();
+            // Update the distributor
+            policeDistributor.setSelectedNeighbourhoods(selectedNeighbourhoods);
+
+            // Update the appearance
+            restyleFeature(feature);
+
+            // Update any elements that require a selection
+            if (selectedNeighbourhoods.length > 0) {
+                $(".selection-required").removeClass("disabled");
+                $('a.selection-required').off("click", preventDefault);
+            } else {
+                $(".selection-required").addClass("disabled");
+                $('a.selection-required').on("click", preventDefault);
+            }
         }
+
+        //  if (typeof generatePopupContent == 'function') {
+        //     $("#statsModal").modal('show');
+        //     setFeature(feature);
+        //
+        //     generatePopupContent();
+        // }
 
         //PLEASE DON'T REFACTOR - WORK IN PROGRESS
 
@@ -446,8 +550,12 @@ map.on('singleclick', function(evt) {
         popup.show();
         */
     } else {
-        setSpecialFeature('highlighted', null);
-        $("#statsModal").modal('hide');
+        // setSpecialFeature('highlighted', null);
+        // $("#statsModal").modal('hide');
         //popup.hide();
     }
 });
+
+// By default disable all selection based items
+$(".selection-required").addClass("disabled");
+$('a.selection-required').on("click", preventDefault);

@@ -4,25 +4,25 @@ if (!window.app) {
 
 var app = window.app;
 
+function hexToRGB(hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
 /**
  *  Object responsible for styling
  */
 app.Style = function(/*options*/) {
-    function hexToRGB(hex) {
-        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-            return r + r + g + g + b + b;
-        });
-
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
-
     // Populate our colour scheme for crime types
     this.conversion = {
         'drugs': hexToRGB('231f20'),
@@ -40,10 +40,15 @@ app.Style = function(/*options*/) {
         'criminal-damage-arson': hexToRGB('98005d'),
         'shoplifting': hexToRGB('b06110')
     }
+
+    // Not dimmed by default
+    this.dimmed = false;
 }
 
-if (!app.sharedStyle) {
-    app.sharedStyle = new app.Style();
+app.Style.prototype.setDimmed = function(dimmed) {
+    this.dimmed = dimmed;
+    // Potentially could clear caches
+    console.log("Dimmed changed", dimmed);
 }
 
 app.Style.prototype.generateColoursImage = function(colors, radius, strokeWidth) {
@@ -159,26 +164,57 @@ app.Style.prototype.generateColoursImage = function(colors, radius, strokeWidth)
     return info;
 }
 
-app.Style.prototype.generateColour = function(crimeType, alpha) {
+app.Style.prototype.convertColourToString = function(color, alpha, dimmed) {
     if (alpha == undefined) {
         alpha = 1.0;
     }
 
+    if (dimmed == undefined) {
+        dimmed = false;
+    }
+
+    if (typeof color == 'string' || color instanceof String) {
+        color = hexToRGB(color);
+    }
+
+    // Check if we need to dim the colours
+    if (dimmed) {
+        var y = ((66 * color.r + 129 * color.g +  25 * color.b + 128) >> 8) +  16;
+        var u = ((-38 * color.r - 74 * color.g + 112 * color.b + 128) >> 8) + 128;
+        var v = ((112 * color.r - 94 * color.g - 18 * color.b + 128) >> 8) + 128;
+
+        return 'rgba(' + y + ',' + y + ',' + y + ',' + alpha + ')';
+    }
+
+    return 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + alpha + ')'
+}
+
+app.Style.prototype.generateColour = function(crimeType, alpha, dimmed) {
     var components = crimeType != undefined ? this.conversion[crimeType] : undefined;
     if (components == undefined) {
         components = this.conversion['other-crime'];
     }
 
-    return 'rgba(' + components.r + ',' + components.g + ',' + components.b + ',' + alpha + ')'
+    return this.convertColourToString(components, alpha, dimmed);
 }
 
 app.Style.prototype.generateNeighbourhoodStyle = function(feature, resolution) {
-    // Determine the key for this feature
     var count = parseInt(feature.get('crimecount'));
-    var key;
-    var highlighted = feature.get('highlighted') == true;
-    var hovered = feature.get('hover') == true;
+    var highlighted = feature.get('highlighted');
+    var hovered = feature.get('hover');
+    var dimmed = feature.get('dimmed');
 
+    if (highlighted == undefined)
+        highlighted = false;
+
+    if (hovered == undefined)
+        hovered = false;
+
+    if (dimmed == undefined)
+        dimmed = this.dimmed;
+
+    // Determine the key for this feature
+    var key;
     if (count < 100) {
         key = 'very low';
     } else if (count < 200) {
@@ -196,7 +232,7 @@ app.Style.prototype.generateNeighbourhoodStyle = function(feature, resolution) {
         // Everybody has a stroke and a text fill style
         new ol.style.Style({
             stroke: new ol.style.Stroke({
-                color: 'rgba(0,0,0,0.5)',
+                color: 'rgba(0,0,0,' + (dimmed ? 0.25 : 0.5) + ')',
                 width: (highlighted || hovered) ? 2 : 1
             }),
 
@@ -204,7 +240,7 @@ app.Style.prototype.generateNeighbourhoodStyle = function(feature, resolution) {
                 font: '14px Helvetica, sans-serif',
                 text: feature.get("name"),
                 fill: new ol.style.Fill({
-                    color: "#000"
+                    color: 'rgba(0,0,0,' + (dimmed ? 0.4 : 1.0) + ')',
                 }),
                 stroke: new ol.style.Stroke({
                     color: "#FFF",
@@ -215,36 +251,36 @@ app.Style.prototype.generateNeighbourhoodStyle = function(feature, resolution) {
     ]
 
     // Dynamic styles
-    var alpha = (highlighted ? '0.6' : hovered ? '0.45' : '0.35')
+    var alpha = (highlighted ? '0.5' : hovered ? '0.35' : dimmed ? '0.1' : '0.25');
     var count = parseInt(feature.get("crimecount"));
     if (key == 'very low') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(115,206,255,' + alpha + ')'
+                color: this.convertColourToString({r: 115, g: 206, b: 255}, alpha, dimmed)
             })
         }));
     } else if (key == 'low') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(187,255,255,' + alpha + ')'
+                color: this.convertColourToString({r: 187, g: 255, b: 255}, alpha, dimmed)
             })
         }));
     } else if (key == 'medium') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,243,101,' + alpha + ')'
+                color: this.convertColourToString({r: 255, g: 243, b: 101}, alpha, dimmed)
             })
         }));
     } else if (key == 'high') {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,155,30,' + alpha + ')'
+                color: this.convertColourToString({r: 255, g: 155, b: 30}, alpha, dimmed)
             })
         }));
     } else {
         styles.push(new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(255,22,4,' + alpha + ')'
+                color: this.convertColourToString({r: 255, g: 22, b: 4}, alpha, dimmed)
             })
         }));
     }
@@ -262,6 +298,11 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
 
     var crimes = feature.get('crime');
     var size = feature.get('size');
+    var dimmed = feature.get('dimmed');
+
+    if (dimmed == undefined) {
+        dimmed = this.dimmed;
+    }
 
     // Check if such a feature has been seen (crimes + size)
     if (crimes == undefined || size == undefined) {
@@ -269,7 +310,7 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
         return [];
     }
 
-    var key = 'crimes:' + crimes + ';size:' + size;
+    var key = 'crimes:' + crimes + ';size:' + size + ';dimmed:' + dimmed;
 
     var styles = this.incidentStyleCache[key];
     if (styles != undefined) {
@@ -279,7 +320,7 @@ app.Style.prototype.generateIncidentStyle = function(feature, resolution) {
     // Generate an appropriate image for the cluster
     var me = this;
     var colours = crimes.map(function(element, idx) {
-        return me.generateColour(element);
+        return me.generateColour(element, 1.0, dimmed);
     });
 
     var radius = Math.min(Math.max(size / 500 * 12, 8), 12);

@@ -8,6 +8,19 @@ body {
   padding-top: 50px;
 }
 
+/* Bootstrap additions */
+a.disabled,
+a.disabled:visited ,
+a.disabled:active,
+a.disabled:hover {
+    color:#aaa !important;
+}
+
+.modal-body {
+    left-padding: 20px;
+    right-padding: 20px;
+}
+
 /* Application style */
 
 .navbar .navbar-brand {

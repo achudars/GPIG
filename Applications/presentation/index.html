@@ -36,7 +36,7 @@
     <title>Crime-Aid</title>
   </head>
   <body>
-    
+
     <div id="statsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
       <div class="modal-dialog">
           <div class="modal-content" style="width: 700px;">
@@ -48,9 +48,9 @@
             <div class="modal-body">
 
                 <div id="plots"></div>
-                 
-              
-                
+
+
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -58,40 +58,6 @@
         </div>
       </div>
     </div>
-       
-      
-      
-     <div id="policeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
-      <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Police Resource Distribution</h4>
-            </div>
-            <div class="modal-body"  style="overflow-y: scroll; max-height:300px;">
-                <p><b>Select the number of police you need for the area covered by the map</b></p>
-              <div class="row">
-                  <div >
-                      <div class="input-group number-spinner">
-                          <span class="input-group-btn data-dwn">
-                              <button class="btn btn-default btn-info" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></button>
-                          </span>
-                          <input id="policeNo" type="text" class="form-control text-center" value="10" min="10" max="400" width="585px">
-                          <span class="input-group-btn data-up">
-                              <button class="btn btn-default btn-info" data-dir="up"><span class="glyphicon glyphicon-plus"></span></button>
-                          </span>
-                      </div>
-                  </div>
-              </div>
-              <div id="modaltable" class="row"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button id="calculateBtn" type="button" class="btn btn-primary">Calculate Distribution</button>
-            </div>
-        </div>
-      </div>
-    </div> 
 
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="navbar-header">
@@ -110,19 +76,16 @@
               <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="resetView(); return false;"><i class="fa  fa-map-marker"></i>&nbsp;&nbsp;Reset to York</a></li>
             </ul>
           </li>
-          <li><label class="navbar-text" >Select Region for police distribution:</label><br/></li>
-          <li><button type="button" class="btn btn-primary" id="policeResourceBtn" value="Select Region">Select Region</button><br/></li>
+          <li class="dropdown">
+              <a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-users" style="color: white;"></i>&nbsp;&nbsp;Police Distribution <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                  <li><a href="#" onclick="toggleMode(); return false;" class="selection-toggle">Select Regions</a></li>
+                  <li><a href="#" onclick="distributeForces(event); return false;" class="selection-required">Distribute</a></li>
+              </ul>
+          </li>
         </ul>
       </div><!--/.navbar-collapse -->
     </div>
-     <!-- <div id ="ui-toolbox">
-        <div class="filter">
-            <label>Select Region for police distribution:</label><br/>
-            <div class="filterDiv">
-                 <button type="button" class="btn btn-primary" id="policeResourceBtn">Select Region</button><br/>
-            </div>
-        </div>
-    </div> -->
     <div id="map">
       <div id="popup" class="ol-popup">
       </div>
