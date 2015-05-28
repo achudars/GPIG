@@ -85,6 +85,15 @@ app.FiltersControl = function(opt_options) {
         }
     ]
 
+    var crimeGroups = crimeTypes.map(function(value) {
+        return {
+            title: value.title,
+            items: value.items.map(function(item) {
+                return item[0];
+            })
+        };
+    });
+
     for (var i = 0, l = crimeTypes.length; i < l; i++) {
         var group = crimeTypes[i];
         var optGroup = document.createElement('optgroup');
@@ -144,7 +153,55 @@ app.FiltersControl = function(opt_options) {
     $(crimeTypeSelect).multiselect({
         buttonWidth: '180px',
         enableClickableOptGroups: true,
-        dropRight: true
+        dropRight: true,
+        includeSelectAllOption: true,
+        buttonText: function(options, select) {
+            if (options.length === 0) {
+                return 'None';
+            }
+
+            var totalOptions = $(select).find('option').length;
+            if (totalOptions == options.length) {
+                return 'All ' + totalOptions + ' selected';
+            }
+
+            // Check if all options fall under the same type
+            var groups = [];
+            $(options).each(function(idx, element) {
+                if (!element.selected) {
+                    return true;
+                }
+
+                var value = element.value;
+                var group = crimeGroups.find(function(element) {
+                    return element.items.indexOf(value) != -1;
+                });
+
+                if (group != undefined && groups.indexOf(group) == -1) {
+                    groups.push(group);
+                }
+            });
+
+            if (groups.length == 1 && (groups[0].items.length == options.length || options.length > 2)) {
+                // All in one group
+                return groups[0].title + " (" + options.length + ")";
+            } else if (options.length > 2) {
+                return options.length + ' selected';
+            } else {
+                var labels = [];
+
+                options.each(function() {
+                    if ($(this).attr('label') !== undefined) {
+                        labels.push($(this).attr('label'));
+                    }
+                    else {
+                        labels.push($(this).html());
+                    }
+                });
+
+                return labels.join(', ') + '';
+            }
+        }
     });
 
     $(startDate).datepicker({ dateFormat: "dd-mm-yy" });
