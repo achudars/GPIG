@@ -15,14 +15,14 @@ var app = window.app;
  */
 
 app.PoliceDistributor = function() {
-    this.selectedNeighbourhoods = [];
+    this.neighbourhoods = [];
 }
 
-app.PoliceDistributor.prototype.setSelectedNeighbourhoods = function(newNeighbourhoods) {
+app.PoliceDistributor.prototype.setNeighbourhoods = function(newNeighbourhoods) {
     if (newNeighbourhoods.constructor === Array)
-        this.selectedNeighbourhoods = newNeighbourhoods;
+        this.neighbourhoods = newNeighbourhoods;
     else
-        this.selectedNeighbourhoods = [];
+        this.neighbourhoods = [];
 }
 
 app.PoliceDistributor.prototype.createDistributionModal_ = function(calculationCallback) {
@@ -142,8 +142,8 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
         var distributions = [];
         var sum = 0;
 
-        for (i in me.selectedNeighbourhoods) {
-            var neighbourhood = me.selectedNeighbourhoods[i];
+        for (i in me.neighbourhoods) {
+            var neighbourhood = me.neighbourhoods[i];
             var crimeCount = parseInt(neighbourhood.get('crimecount'));
             crimeCounts.push(crimeCount);
 
@@ -169,7 +169,7 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
                             <tbody>';
 
         for (i in distributions) {
-            var neighbourhood = me.selectedNeighbourhoods[i];
+            var neighbourhood = me.neighbourhoods[i];
             row = '<tr><td>'+ neighbourhood.get('name') + '</td><td>' + distributions[i] +'</td></tr>';
             element += row;
         }
@@ -181,4 +181,9 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
     });
 
     $(modal).modal().show();
+
+    $(modal).on('hidden.bs.modal', function () {
+        $(modal).data('bs.modal', null);
+        $(modal).remove();
+    });
 }

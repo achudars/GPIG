@@ -44,7 +44,7 @@ const MODE = Object.freeze({INTERACTION: 0, SELECTION: 1});
 var mode = MODE.INTERACTION;
 
 // Selected neighbourhoods
-var selectedNeighbourhoods = [];
+var selectedNeighbourhoodGIDs = [];
 
 // Police distributor
 var policeDistributor = new app.PoliceDistributor();
@@ -80,7 +80,16 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
             url: encodeURI(url)
         })
         .done(function(response) {
-            neighbourhoodsStatsSource.addFeatures(neighbourhoodsStatsSource.readFeatures(response));
+            var features = neighbourhoodsStatsSource.readFeatures(response);
+
+            // Re-apply the suitable dimmed ignoring flags
+            features.forEach(function(element) {
+                if (selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1) {
+                    element.set('dimmed', false);
+                }
+            });
+
+            neighbourhoodsStatsSource.addFeatures(features);
         });
     },
 
@@ -442,7 +451,7 @@ function toggleMode(event) {
     if (mode == MODE.INTERACTION) {
         setMode(MODE.SELECTION);
 
-        if (selectedNeighbourhoods.length > 0) {
+        if (selectedNeighbourhoodGIDs.length > 0) {
             $(".selection-required").removeClass("disabled");
             $('a.selection-required').off("click", preventDefault);
         }
@@ -458,6 +467,11 @@ function distributeForces(event) {
     if ($(event.target).hasClass("disabled"))
         return;
 
+    var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
+        return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
+    });
+    
+    policeDistributor.setNeighbourhoods(features);
     policeDistributor.startDistributionFlow();
 }
 
@@ -502,27 +516,26 @@ map.on('singleclick', function(evt) {
         if (mode == MODE.INTERACTION) {
 
         } else if (mode == MODE.SELECTION) {
+            var gid = feature.getId();
+
             // Toggle the dimming on the feature
             var dimmed = feature.get('dimmed');
             if (dimmed == undefined) {
                 feature.set('dimmed', false);
-                selectedNeighbourhoods.push(feature);
+                selectedNeighbourhoodGIDs.push(gid);
             } else {
                 delete feature.values_['dimmed'];
-                var idx = selectedNeighbourhoods.indexOf(feature);
+                var idx = selectedNeighbourhoodGIDs.indexOf(gid);
                 if (idx != -1) {
-                    selectedNeighbourhoods.splice(idx, 1);
+                    selectedNeighbourhoodGIDs.splice(idx, 1);
                 }
             }
-
-            // Update the distributor
-            policeDistributor.setSelectedNeighbourhoods(selectedNeighbourhoods);
 
             // Update the appearance
             restyleFeature(feature);
 
             // Update any elements that require a selection
-            if (selectedNeighbourhoods.length > 0) {
+            if (selectedNeighbourhoodGIDs.length > 0) {
                 $(".selection-required").removeClass("disabled");
                 $('a.selection-required').off("click", preventDefault);
             } else {
