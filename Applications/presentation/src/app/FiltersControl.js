@@ -151,7 +151,7 @@ app.FiltersControl = function(opt_options) {
 
     // Initialise some of the fields
     $(crimeTypeSelect).multiselect({
-        buttonWidth: '180px',
+        buttonWidth: '150px',
         enableClickableOptGroups: true,
         dropRight: true,
         includeSelectAllOption: true,
