@@ -1,6 +1,7 @@
 /**
  * Add all your dependencies here.
  *
+ * @require OLAdditions.js
  * @require LayersControl.js
  * @require FiltersControl.js
  * @require Stats.js
@@ -40,8 +41,20 @@ var styles = {
 };
 
 // Mode for the application
-const MODE = Object.freeze({INTERACTION: 0, SELECTION: 1});
+const MODE = Object.freeze({INTERACTION: 0, ZOOM: 1, SELECTION: 2});
 var mode = MODE.INTERACTION;
+
+// Zoom restoration
+// Keeping track of the feature we are zoomed into,
+// as well as the state we can restore to
+var zoomState = {
+    feature: undefined,
+    resolution: undefined,
+    center: undefined
+};
+
+// Highlighted neighbourhood
+var highlightedNeighbourhood = undefined;
 
 // Selected neighbourhoods
 var selectedNeighbourhoodGIDs = [];
@@ -84,7 +97,9 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
 
             // Re-apply the suitable dimmed ignoring flags
             features.forEach(function(element) {
-                if (selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1) {
+                if (mode == MODE.SELECTION && selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1) {
+                    element.set('dimmed', false);
+                } else if (mode == MODE.ZOOMED && zoomState.featureGID == element.getId()) {
                     element.set('dimmed', false);
                 }
             });
@@ -307,126 +322,123 @@ function preventDefault(event) {
     event.preventDefault();
 }
 
-function restyleLayer(layer) {
-    // Loop over all visible features on the layer and re-apply their style
-    var source = layer.getSource();
-    var styleFunction = layer.getStyleFunction();
-    var resolution = map.getView().getResolution();
-    var features = source.getFeatures();
-
-    for (var i = 0, l = features.length; i < l; i++) {
-        var feature = features[i];
-        feature.setStyle(styleFunction(feature, resolution));
-    }
-}
-
-function restyleFeature(feature) {
-    var layer = getLayerFromFeature(feature);
-    var styleFunction = layer.getStyleFunction();
-    var resolution = map.getView().getResolution();
-    feature.setStyle(styleFunction(feature, resolution));
-}
-
-function getLayerFromFeature(feature) {
-    var found = undefined;
-    map.getLayers().forEach(function(layer) {
-        if (!(layer instanceof ol.layer.Vector)) {
-             return false;
-           }
-
-           if (layer.getSource().getFeatureById(feature.getId()) != undefined) {
-               found = layer;
-               return true;
-           }
-    });
-
-    return found;
-}
-
-function getLayerForTitle(title) {
-    var found = undefined;
-    map.getLayers().forEach(function(layer) {
-        if (layer.get('title') == title) {
-            found = layer;
-            return true;
-        }
-    });
-
-    return found;
-}
-
-function setMode(newMode) {
+function setMode(newMode, object) {
     if (mode == newMode) {
         return;
     }
 
-    if (newMode == MODE.INTERACTION) {
-        mode = newMode;
+    mode = newMode;
 
+    // Handling transitions away from SELECTION and ZOOMED
+    if (newMode != MODE.SELECTION) {
         // Alter the title of every selection button
         $(".selection-toggle").text('Select Regions');
 
-        // Undim the neighbourhoods layer
-        styles.neighbourhoods.dimmed = false;
-        var layer = getLayerForTitle(neighbourhoodsStatsTitle);
-        restyleLayer(layer);
+        // Update the features
+        var features = neighbourhoodsStatsSource.getFeaturesByIDs(selectedNeighbourhoodGIDs);
+        features.forEach(function(feature) {
+            feature.unset('dimmed');
+        });
 
-    } else if (newMode == MODE.SELECTION) {
-        mode = newMode;
+        // Restyle the layer
+        if (newMode != MODE.ZOOMED) {
+            styles.neighbourhoods.dimmed = false;
+            map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+        }
+    }
 
+    if (newMode != MODE.ZOOMED) {
+        // Restore the zoom state (if there anything to restore)
+        var view = map.getView();
+
+        if (zoomState.center && zoomState.resolution) {
+            map.beforeRender(new ol.animation.pan({
+                source: view.getCenter(),
+                duration: 750
+            }), new ol.animation.zoom({
+                resolution: view.getResolution(),
+                duration: 750
+            }));
+
+            zoomState.feature.unset('dimmed');
+            if (newMode != MODE.SELECTION) {
+                styles.neighbourhoods.dimmed = false;
+            }
+
+            map.once('postrender', function() {
+                // Restyle the layer/feature
+                map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+
+                // Remove state
+                delete zoomState.feature;
+                delete zoomState.featureID;
+                delete zoomState.center;
+                delete zoomState.resolution;
+            });
+
+            view.setCenter(zoomState.center);
+            view.setResolution(zoomState.resolution);
+        }
+    }
+
+    // Handling transitions to SELECTION and ZOOMED
+    if (newMode == MODE.SELECTION) {
         // Alter the title of every selection button
         $(".selection-toggle").text('Cancel Selection');
 
+        // Update the features
+        var features = neighbourhoodsStatsSource.getFeaturesByIDs(selectedNeighbourhoodGIDs);
+        features.forEach(function(feature) {
+            feature.set('dimmed', false);
+        });
+
+        // Restyle the layer
         styles.neighbourhoods.dimmed = true;
-        var layer = getLayerForTitle(neighbourhoodsStatsTitle);
-        restyleLayer(layer);
+        map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+    }
+
+    if (newMode == MODE.ZOOMED) {
+        // Disable the highlighted feature's highlight
+        if (highlightedNeighbourhood) {
+            highlightedNeighbourhood.unset('hover', true, map);
+            highlightedNeighbourhood = undefined;
+        }
+
+        // Zoom into a feature
+        var view = map.getView();
+
+        if (object) {
+            zoomState.feature = object;
+            zoomState.featureGID = object.getId();
+        }
+
+        zoomState.center = view.getCenter();
+        zoomState.resolution = view.getResolution();
+
+        map.beforeRender(new ol.animation.pan({
+            duration: 750,
+            source: zoomState.center
+        }), new ol.animation.zoom({
+            duration: 750,
+            resolution: zoomState.resolution
+        }), function() {
+            zoomState.feature.set('dimmed', false);
+            styles.neighbourhoods.dimmed = true;
+            return false;
+        });
+
+        view.fitGeometry(zoomState.feature.getGeometry(), map.getSize(), {
+            padding: [50, 100, 100, 100],
+            maxZoom: zoom.max
+        });
+
+        map.once('postrender', function() {
+            // Restyle the layer/feature
+            map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+        });
     }
 }
 
-// Special features (hover/highlight etc.)
-function setSpecialFeature(key, feature, redraw) {
-    if (redraw == undefined) {
-        redraw = true;
-    }
-
-    if (!window.specialFeatures) {
-        window.specialFeatures = {};
-    }
-    var features = window.specialFeatures;
-
-    var previousFeature = features[key];
-    if (previousFeature === feature) {
-        return;
-    }
-
-    if (previousFeature != undefined && typeof previousFeature != undefined) {
-        // unset does not work, and setting to false is not always correct
-        if (previousFeature.values_[key])
-            delete previousFeature.values_[key];
-
-        if (redraw) {
-            var layer = getLayerFromFeature(previousFeature);
-
-            if (layer) {
-                var styleFunction = getLayerFromFeature(previousFeature).getStyleFunction();
-                previousFeature.setStyle(styleFunction(previousFeature, null));
-            }
-        }
-
-        delete features[key];
-    }
-
-    if (feature != undefined &&  typeof feature != undefined) {
-        feature.set(key, true);
-
-        if (redraw) {
-            var styleFunction = getLayerFromFeature(feature).getStyleFunction();
-            feature.setStyle(styleFunction(feature, null));
-        }
-
-        features[key] = feature;
-    }
-}
 
 /**
  *  Interactions
@@ -448,18 +460,18 @@ function resetView() {
 }
 
 function toggleMode(event) {
-    if (mode == MODE.INTERACTION) {
+    if (mode == MODE.SELECTION) {
+        setMode(MODE.INTERACTION);
+
+        $(".selection-required").addClass("disabled");
+        $('a.selection-required').on("click", preventDefault);
+    } else {
         setMode(MODE.SELECTION);
 
         if (selectedNeighbourhoodGIDs.length > 0) {
             $(".selection-required").removeClass("disabled");
             $('a.selection-required').off("click", preventDefault);
         }
-    } else if (mode == MODE.SELECTION) {
-        setMode(MODE.INTERACTION);
-
-        $(".selection-required").addClass("disabled");
-        $('a.selection-required').on("click", preventDefault);
     }
 }
 
@@ -470,7 +482,7 @@ function distributeForces(event) {
     var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
         return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
     });
-    
+
     policeDistributor.setNeighbourhoods(features);
     policeDistributor.startDistributionFlow();
 }
@@ -482,28 +494,42 @@ map.on('pointermove', function(evt) {
         return;
     }
 
-    // Ignore events that are within overlays (to avoid weird ghosting)
-    var element = document.elementFromPoint(evt.browserEvent.clientX, evt.browserEvent.clientY);
+    // Disable while in zoom mode
+    var disable = mode == MODE.ZOOMED;
 
-    var disable = false;
-    map.getOverlays().forEach(function(overlay, idx) {
-        var container = overlay.getElement();
-        if (container === element || $.contains(overlay.getElement(), element)) {
-            disable = true;
-            return false;
-        }
-    });
+    if (!disable) {
+        // or events that are within overlays (to avoid weird ghosting)
+        var element = document.elementFromPoint(evt.browserEvent.clientX, evt.browserEvent.clientY);
 
+        map.getOverlays().forEach(function(overlay, idx) {
+            var container = overlay.getElement();
+            if (container === element || $.contains(overlay.getElement(), element)) {
+                disable = true;
+                return false;
+            }
+        });
+    }
+
+    // Handling hover state
     if (disable == false) {
         var coordinate = map.getEventCoordinate(evt.originalEvent);
         var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coordinate);
         if (features.length > 0) {
-            setSpecialFeature('hover', features[0]);
-        } else {
-            setSpecialFeature('hover', null);
+
+            if (highlightedNeighbourhood) {
+                highlightedNeighbourhood.unset('hover', true, map);
+            }
+
+            highlightedNeighbourhood = features[0];
+            highlightedNeighbourhood.set('hover', true);
+            highlightedNeighbourhood.restyle(map);
+        } else if (highlightedNeighbourhood) {
+            highlightedNeighbourhood.unset('hover', true, map);
+            highlightedNeighbourhood = undefined;
         }
-    } else {
-        setSpecialFeature('hover', null);
+    } else if (highlightedNeighbourhood) {
+        highlightedNeighbourhood.unset('hover', true, map);
+        highlightedNeighbourhood = undefined;
     }
 });
 
@@ -514,9 +540,12 @@ map.on('singleclick', function(evt) {
         var feature = features[0];
 
         if (mode == MODE.INTERACTION) {
-
+            setMode(MODE.ZOOMED, feature);
+        } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
+            setMode(MODE.INTERACTION);
         } else if (mode == MODE.SELECTION) {
             var gid = feature.getId();
+            var oldCount = selectedNeighbourhoodGIDs.length;
 
             // Toggle the dimming on the feature
             var dimmed = feature.get('dimmed');
@@ -524,7 +553,7 @@ map.on('singleclick', function(evt) {
                 feature.set('dimmed', false);
                 selectedNeighbourhoodGIDs.push(gid);
             } else {
-                delete feature.values_['dimmed'];
+                feature.unset('dimmed');
                 var idx = selectedNeighbourhoodGIDs.indexOf(gid);
                 if (idx != -1) {
                     selectedNeighbourhoodGIDs.splice(idx, 1);
@@ -532,18 +561,21 @@ map.on('singleclick', function(evt) {
             }
 
             // Update the appearance
-            restyleFeature(feature);
+            feature.restyle(map);
 
             // Update any elements that require a selection
-            if (selectedNeighbourhoodGIDs.length > 0) {
-                $(".selection-required").removeClass("disabled");
-                $('a.selection-required').off("click", preventDefault);
-            } else {
-                $(".selection-required").addClass("disabled");
-                $('a.selection-required').on("click", preventDefault);
+            if (oldCount != selectedNeighbourhoodGIDs.length) {
+                if (selectedNeighbourhoodGIDs.length > 0) {
+                    $(".selection-required").removeClass("disabled");
+                    $('a.selection-required').off("click", preventDefault);
+                } else {
+                    $(".selection-required").addClass("disabled");
+                    $('a.selection-required').on("click", preventDefault);
+                }
             }
         }
 
+        //
         //  if (typeof generatePopupContent == 'function') {
         //     $("#statsModal").modal('show');
         //     setFeature(feature);
@@ -563,9 +595,7 @@ map.on('singleclick', function(evt) {
         popup.show();
         */
     } else {
-        // setSpecialFeature('highlighted', null);
         // $("#statsModal").modal('hide');
-        //popup.hide();
     }
 });
 
