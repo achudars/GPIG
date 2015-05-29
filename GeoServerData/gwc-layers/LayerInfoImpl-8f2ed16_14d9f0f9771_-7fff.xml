@@ -1,7 +1,7 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl--62c51a70:14d90c601f7:-7fff</id>
+  <id>LayerInfoImpl-8f2ed16:14d9f0f9771:-7fff</id>
   <enabled>true</enabled>
-  <name>crime:neighbourhood-statistics</name>
+  <name>crime:incidents</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>

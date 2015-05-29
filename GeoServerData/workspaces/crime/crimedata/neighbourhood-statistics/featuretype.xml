@@ -1,11 +1,11 @@
 <featureType>
   <id>FeatureTypeInfoImpl--62c51a70:14d90c601f7:-8000</id>
-  <name>neighbourhood-statsistics</name>
+  <name>neighbourhood-statistics</name>
   <nativeName>neighbourhood-statsistics</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--285b7e02:14d4812a9f4:-7ffe</id>
   </namespace>
-  <title>neighbourhood-statsistics</title>
+  <title>Neighbourhood Statistics</title>
   <keywords>
     <string>neighbourhood-statsistics</string>
     <string>features</string>
@@ -54,7 +54,7 @@ AND date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = A
 date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY crime) i) AS stats,&#xd;
 (SELECT array_to_json(array_agg(row_to_json(i)))::text FROM &#xd;
 (SELECT crime, COUNT(*) AS count, date FROM incidents i WHERE ST_Within(i.geom, n.geom) AND&#xd;
-date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY crime, date) i) AS stats2&#xd;
+date BETWEEN &apos;%STARTDATE%&apos; AND &apos;%ENDDATE%&apos; AND crime = ANY(ARRAY[%CRIME%]) GROUP BY crime, date) i) AS periodicstats&#xd;
 FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%AREA%))) t1
 </sql>
         <escapeSql>false</escapeSql>
@@ -62,7 +62,7 @@ FROM neighbourhoods n WHERE ST_Intersects(n.geom, ST_MakeEnvelope(%AREA%))) t1
         <geometry>
           <name>geom</name>
           <type>Geometry</type>
-          <srid>4326</srid>
+          <srid>-4326</srid>
         </geometry>
         <parameter>
           <name>AREA</name>

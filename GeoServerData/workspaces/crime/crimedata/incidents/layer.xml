@@ -1,14 +1,13 @@
 <layer>
   <name>incidents</name>
-  <id>LayerInfoImpl--285b7e02:14d4812a9f4:-7ffb</id>
+  <id>LayerInfoImpl-8f2ed16:14d9f0f9771:-7fff</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--285b7e02:14d4812a9f4:-7ffc</id>
+    <id>FeatureTypeInfoImpl-8f2ed16:14d9f0f9771:-8000</id>
   </resource>
-  <queryable>false</queryable>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
