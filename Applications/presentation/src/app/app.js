@@ -111,10 +111,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         });
     },
 
-    strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
-        maxZoom: zoom.max,
-        minZoom: zoom.min
-    }))
+    strategy: ol.loadingstrategy.bbox
 });
 
 // Incidents (as a vector for clustering/styling)
@@ -225,7 +222,7 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
             var clusters = kmeansClusters(features, 9);
             incidentsNeighbourhoodSource.addFeatures(clusters);
         });
-    },
+    }
 });
 
 var incidentsNeighbourhoodLayer = new ol.layer.Vector({
