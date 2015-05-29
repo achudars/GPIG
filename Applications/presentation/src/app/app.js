@@ -196,7 +196,8 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
 
     loader: function(extent, resolution, projection) {
         // Create the URL for the request
-        var viewparams = ""
+        var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
+        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
 
         if (this.filter) {
             viewparams += ";" + this.filter;
@@ -218,7 +219,6 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
         })
         .done(function(response) {
             var features = incidentsNeighbourhoodSource.readFeatures(response);
-            console.log("features loaded");
 
             // Custom clustering (not visual distance,
             // but rather physical distance based k-means approach)
