@@ -620,7 +620,7 @@ map.on('singleclick', function(evt) {
             // Populate our stats drawer
             if (typeof generatePopupContent == 'function') {
                 var content = generatePopupContent(feature, content);
-                statsDrawer.innerHTML = content;
+                $(statsDrawer).find('.content')[0].innerHTML = content;
             }
 
             setMode(MODE.ZOOMED, feature);
