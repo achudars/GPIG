@@ -74,7 +74,7 @@ NEIGHBOURHOOD - ID of the neighbourhood that the incidents should belong to, if 
         <parameter>
           <name>ENDDATE</name>
           <defaultValue>2100-01-01</defaultValue>
-          <regexpValidator>^((&apos;[\w\-\s\d]*&apos;),\s*)*(&apos;[\w\-\s\d]*&apos;)$</regexpValidator>
+          <regexpValidator>^(?:[0-9]{4})\-(?:(?:0[1-9])|(?:1[012]))\-(?:(?:0[1-9])|(?:1[0-9])|(?:2[0-9])|(?:3[0-1]))$</regexpValidator>
         </parameter>
         <parameter>
           <name>STARTDATE</name>
