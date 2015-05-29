@@ -1,4 +1,63 @@
 /**
+ *  Geometry additions
+ */
+
+ol.geom.Geometry.prototype.getPoint = function() {
+    if (typeof this.getType != 'function') {
+        return undefined;
+    }
+
+    function averageCoordinates(coordinates) {
+        return coordinates.reduce(function(current, next) {
+            if (current == undefined) {
+                return next;
+            }
+
+            return [(current[0] + next[0]) / 2, (current[1] + next[1]) / 2];
+        }, undefined);
+    }
+
+    var type = this.getType();
+
+    if (type == 'Point') {
+        return this;
+    } else if (type == 'LineString' || type == 'MultiLineString' || type == 'LinearRing' || type == 'MultiPoint') {
+        return new ol.geom.Point(averageCoordinates(this.getCoordinates('XY')), 'XY');
+    } else if (type == 'Polygon') {
+        return this.getInteriorPoint();
+    } else if (type == 'MultiPolygon') {
+        var coordinates = this.getInteriorPoints().map(function(element) {
+            return element.getCoordinates('XY');
+        });
+
+        return new ol.geom.Point(averageCoordinates(coordinates), 'XY');
+    } else if (type == 'GeometryCollection') {
+        var geometries = this.getGeometries();
+        var points = geometries.map(function(element) {
+            return element.getPoint();
+        });
+
+        var coordinates = points.map(function(element) {
+            return element.getCoordinates('XY');
+        });
+
+        return new ol.geom.Point(averageCoordinates(coordinates), 'XY');
+    } else if (type == 'Circle') {
+        return new ol.geom.Point(this.getCenter());
+    }
+
+    return undefined;
+}
+
+ol.geom.Point.prototype.midPoint = function(otherPoint) {
+    // Mid point between this and otherPoint
+    var coordinates = this.getCoordinates('XY');
+    var otherCoordinates = otherPoint.getCoordinates('XY');
+
+    return new ol.geom.Point([(coordinates[0] + otherCoordinates[0]) / 2, (coordinates[1] + otherCoordinates[1]) / 2], 'XY');
+}
+
+/**
  *  Feature additions
  */
 

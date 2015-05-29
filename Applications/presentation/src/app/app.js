@@ -7,6 +7,7 @@
  * @require Stats.js
  * @require Style.js
  * @require PoliceDistribution.js
+ * @require Clustering.js
  */
 
 // ========= config section ================================================
@@ -17,7 +18,7 @@ var featurePrefix = 'crime';
 var center = {lat: 53.958647, long: -1.082995};
 var zoom = {min: 15, default: 15, max: 19};
 
-var neighbourhoodsStatsType = 'neighbourhood-statsistics';
+var neighbourhoodsStatsType = 'neighbourhood-statistics';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Stats';
 
 var incidentsType = 'incidents';
@@ -125,20 +126,19 @@ var incidentsSource = new ol.source.ServerVector({
 
     loader: function(extent, resolution, projection) {
         // Create the URL for the request
+        var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
+        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
+
+        if (this.filter) {
+            viewparams += ";" + this.filter;
+        }
+
+        // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
             'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&'+
-            'srsname='+ projection.code_ +
-            '&CQL_FILTER={{CQLFILTER}}';
-
-        var cqlFilterBBox =  "BBOX(geom, " + extent.join(',') + ",'" + projection.code_ + "')";
-        var cqlFilter = cqlFilterBBox;
-
-        if (this.cqlFilter) {
-            cqlFilter += " AND " + this.cqlFilter;
-        }
-
-        url = url.replace('{{CQLFILTER}}', cqlFilter);
+            'srsname='+ projection.code_ + '&' +
+            'viewparams=' + viewparams;
 
         $.ajax({
             url: encodeURI(url)
@@ -186,6 +186,57 @@ incidentsClusterSource.on('addfeature', function(evt) {
     recalculateClusterInfo(feature);
 });
 
+
+// Neighbourhood specific incidents source
+var incidentsNeighbourhoodSource = new ol.source.ServerVector({
+    format: new ol.format.WFS({
+        featureNS: 'http://localhost',
+        featureType: incidentsType
+    }),
+
+    loader: function(extent, resolution, projection) {
+        // Create the URL for the request
+        var viewparams = ""
+
+        if (this.filter) {
+            viewparams += ";" + this.filter;
+        }
+
+        if (this.neighbourhoodGID) {
+            viewparams += ";" + "NEIGHBOURHOOD:" + this.neighbourhoodGID.split('.').pop();
+        }
+
+        // Create the URL for the reqeust
+        var url = '/geoserver/wfs?' +
+            'service=WFS&request=GetFeature&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&'+
+            'srsname='+ projection.code_ + '&' +
+            'viewparams=' + viewparams;
+
+        $.ajax({
+            url: encodeURI(url)
+        })
+        .done(function(response) {
+            var features = incidentsNeighbourhoodSource.readFeatures(response);
+            console.log("features loaded");
+
+            // Custom clustering (not visual distance,
+            // but rather physical distance based k-means approach)
+            var clusters = kmeansClusters(features, 9);
+            incidentsNeighbourhoodSource.addFeatures(clusters);
+        });
+    },
+});
+
+var incidentsNeighbourhoodLayer = new ol.layer.Vector({
+    source: incidentsNeighbourhoodSource,
+    style: function(feature, resolution) {
+        return styles.incidents.generateIncidentStyle(feature, resolution);
+    },
+    visible: false
+});
+
+
 /**
  *  Map
  */
@@ -206,7 +257,7 @@ var map = new ol.Map({
         }),
 
         new app.FiltersControl({
-            sources: [neighbourhoodsStatsSource, incidentsSource]
+            sources: [neighbourhoodsStatsSource, incidentsSource, incidentsNeighbourhoodSource]
         })
     ]),
 
@@ -303,7 +354,9 @@ var map = new ol.Map({
                 return styles.incidents.generateIncidentStyle(feature, resolution);
             },
             visible: false
-        })
+        }),
+
+        incidentsNeighbourhoodLayer
     ],
 
     // initial center and zoom of the map's view
@@ -367,10 +420,14 @@ function setMode(newMode, object) {
                 }, 750);
             });
 
+            // Reset zoomed feature
             zoomState.feature.unset('dimmed');
             if (newMode != MODE.SELECTION) {
                 styles.neighbourhoods.dimmed = false;
             }
+
+            // Hide/Clear zoomed incidents
+            incidentsNeighbourhoodLayer.setVisible(false);
 
             map.once('postrender', function() {
                 // Restyle the layer/feature
@@ -422,6 +479,10 @@ function setMode(newMode, object) {
         zoomState.center = view.getCenter();
         zoomState.resolution = view.getResolution();
 
+        // Update the zoomed incidents layer source
+        incidentsNeighbourhoodSource.neighbourhoodGID = zoomState.feature.getId();
+        incidentsNeighbourhoodSource.clear(true);
+
         map.beforeRender(new ol.animation.pan({
             duration: 750,
             source: zoomState.center
@@ -432,6 +493,7 @@ function setMode(newMode, object) {
             // Dimming
             zoomState.feature.set('dimmed', false);
             styles.neighbourhoods.dimmed = true;
+
             return false;
         });
 
@@ -443,6 +505,11 @@ function setMode(newMode, object) {
         map.once('postrender', function() {
             // Restyle the layer/feature
             map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
+
+            // Make the incidents visible
+            setTimeout(function() {
+                incidentsNeighbourhoodLayer.setVisible(true);
+            }, 750);
 
             // Show the drawer
             $(statsDrawer).show("slide", {
