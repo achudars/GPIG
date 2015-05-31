@@ -560,7 +560,8 @@ function setMode(newMode, object) {
             });
 
             // Reset zoomed feature
-            zoomState.feature.unset('dimmed');
+            var feature = neighbourhoodsStatsSource.getFeatureById(zoomState.featureGID);
+            feature.unset('dimmed');
             if (newMode != MODE.SELECTION) {
                 styles.neighbourhoods.dimmed = false;
             }
@@ -573,7 +574,6 @@ function setMode(newMode, object) {
                 map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
 
                 // Remove state
-                delete zoomState.feature;
                 delete zoomState.featureID;
                 delete zoomState.center;
                 delete zoomState.resolution;
@@ -611,15 +611,16 @@ function setMode(newMode, object) {
         var view = map.getView();
 
         if (object) {
-            zoomState.feature = object;
             zoomState.featureGID = object.getId();
         }
+
+        var feature = neighbourhoodsStatsSource.getFeatureById(zoomState.featureGID);
 
         zoomState.center = view.getCenter();
         zoomState.resolution = view.getResolution();
 
         // Update the zoomed incidents layer source
-        incidentsNeighbourhoodSource.neighbourhoodGID = zoomState.feature.getId();
+        incidentsNeighbourhoodSource.neighbourhoodGID = zoomState.featureGID;
         incidentsNeighbourhoodSource.clear(true);
 
         map.beforeRender(new ol.animation.pan({
@@ -630,13 +631,13 @@ function setMode(newMode, object) {
             resolution: zoomState.resolution
         }), function() {
             // Dimming
-            zoomState.feature.set('dimmed', false);
+            feature.set('dimmed', false);
             styles.neighbourhoods.dimmed = true;
 
             return false;
         });
 
-        view.fitGeometry(zoomState.feature.getGeometry(), map.getSize(), {
+        view.fitGeometry(feature.getGeometry(), map.getSize(), {
             padding: [50, 100, 100, 450],
             maxZoom: zoom.max
         });
