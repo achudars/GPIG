@@ -400,7 +400,7 @@ function connectCentroids(f) {
     var directionsService = new google.maps.DirectionsService();
     points = getCentroidLocations(f);
     var start = points.shift();
-    var end = points.pop();
+    // var end = points.pop();
     var waypts = [];
     points.forEach(function(v) {
         waypts.push({
@@ -411,9 +411,12 @@ function connectCentroids(f) {
 
     var request = {
         origin: start[0] + ',' + start[1],
-        destination: end[0] + ',' + end[1],
+        // destination: end[0] + ',' + end[1],
+        // form a loop
+        destination: start[0] + ',' + start[1],
         // can only have 8 waypoints
         waypoints: waypts.slice(0, 8),
+        optimizeWaypoints: true,
         travelMode: google.maps.TravelMode.DRIVING
     };
 
