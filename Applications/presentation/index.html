@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-
+    
     <!-- CSS -->
     <link rel="stylesheet" href="src/ol3/ol.css">
     <link rel="stylesheet" href="src/css/Popup.css">
@@ -33,58 +34,56 @@
     <link rel="stylesheet" href="src/ol3/ol.css">
     <script src="src/ol3/ol-debug.js"></script>
 
+    <!-- Google Maps (for routing) -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
     <title>UK Crime Map</title>
-  </head>
-  <body>
+</head>
 
-    <div id="statsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
-      <div class="modal-dialog">
-          <div class="modal-content" style="width: 700px;">
-            <div class="modal-header">
-                <button type="button" class="btn btn-default chartTabs selectedTab" id="pie">Pie Chart of Crimes</button>
-                <button type="button" class="btn btn-default chartTabs" id="overTime">Crimes Over Time</button>
-               <button type="button" class="btn btn-default chartTabs" id="overTime">TODO MORE STATS</button>
-            </div>
-            <div class="modal-body">
-
-                <div id="plots"></div>
-
-
-
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+<body>
+    <div id="statsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="width: 700px;">
+                <div class="modal-header">
+                    <button type="button" class="btn btn-default chartTabs selectedTab" id="pie">Pie Chart of Crimes</button>
+                    <button type="button" class="btn btn-default chartTabs" id="overTime">Crimes Over Time</button>
+                    <button type="button" class="btn btn-default chartTabs" id="overTime">TODO MORE STATS</button>
+                </div>
+                <div class="modal-body">
+                    <div id="plots"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
-      </div>
     </div>
-
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">UK Crime Map</a>
-      </div>
-      <div class="navbar-collapse collapse">
-        <ul class="nav navbar-nav">
-          <li class="dropdown">
-            <a id="toolsDrop" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-globe" style="color: white"></i>&nbsp;&nbsp;Tools <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="resetView(); return false;"><i class="fa  fa-map-marker"></i>&nbsp;&nbsp;Reset to York</a></li>
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">UK Crime Map</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                    <a id="toolsDrop" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-globe" style="color: white"></i>&nbsp;&nbsp;Tools <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="resetView(); return false;"><i class="fa  fa-map-marker"></i>&nbsp;&nbsp;Reset to York</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-users" style="color: white;"></i>&nbsp;&nbsp;Police Distribution <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" onclick="toggleMode(); return false;" class="selection-toggle">Select Regions</a></li>
+                        <li><a href="#" onclick="distributeForces(event); return false;" class="selection-required">Distribute</a></li>
+                    </ul>
+                </li>
             </ul>
-          </li>
-          <li class="dropdown">
-              <a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-users" style="color: white;"></i>&nbsp;&nbsp;Police Distribution <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                  <li><a href="#" onclick="toggleMode(); return false;" class="selection-toggle">Select Regions</a></li>
-                  <li><a href="#" onclick="distributeForces(event); return false;" class="selection-required">Distribute</a></li>
-              </ul>
-          </li>
-        </ul>
-      </div><!--/.navbar-collapse -->
+        </div>
+        <!--/.navbar-collapse -->
     </div>
     <div id="map">
         <div id="drawer" style="display: none;">
@@ -94,5 +93,7 @@
     </div>
     <!-- Load app later, so DOM has been created -->
     <script src="lib/app.js"></script>
-  </body>
+</body>
+
 </html>
+
