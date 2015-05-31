@@ -15,8 +15,15 @@ var url = '/geoserver/ows?';
 var featurePrefix = 'crime';
 
 // By default center around York
-var center = {lat: 53.958647, long: -1.082995};
-var zoom = {min: 15, default: 15, max: 19};
+var center = {
+    lat: 53.958647,
+    long: -1.082995
+};
+var zoom = {
+    min: 15,
+    default: 15,
+    max: 19
+};
 
 var neighbourhoodsStatsType = 'neighbourhood-statistics';
 var neighbourhoodsStatsTitle = 'Neighbourhoods Stats';
@@ -44,7 +51,11 @@ var styles = {
 var statsDrawer = $("#drawer")[0];
 
 // Mode for the application
-const MODE = Object.freeze({INTERACTION: 0, ZOOM: 1, SELECTION: 2});
+const MODE = Object.freeze({
+    INTERACTION: 0,
+    ZOOM: 1,
+    SELECTION: 2
+});
 var mode = MODE.INTERACTION;
 
 // Zoom restoration
@@ -88,27 +99,27 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + neighbourhoodsStatsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            var features = neighbourhoodsStatsSource.readFeatures(response);
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                var features = neighbourhoodsStatsSource.readFeatures(response);
 
-            // Re-apply the suitable dimmed ignoring flags
-            features.forEach(function(element) {
-                if (mode == MODE.SELECTION && selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1) {
-                    element.set('dimmed', false);
-                } else if (mode == MODE.ZOOMED && zoomState.featureGID == element.getId()) {
-                    element.set('dimmed', false);
-                }
+                // Re-apply the suitable dimmed ignoring flags
+                features.forEach(function(element) {
+                    if (mode == MODE.SELECTION && selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1) {
+                        element.set('dimmed', false);
+                    } else if (mode == MODE.ZOOMED && zoomState.featureGID == element.getId()) {
+                        element.set('dimmed', false);
+                    }
+                });
+
+                neighbourhoodsStatsSource.addFeatures(features);
             });
-
-            neighbourhoodsStatsSource.addFeatures(features);
-        });
     },
 
     strategy: ol.loadingstrategy.bbox
@@ -133,16 +144,16 @@ var incidentsSource = new ol.source.ServerVector({
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            incidentsSource.addFeatures(incidentsSource.readFeatures(response));
-        });
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                incidentsSource.addFeatures(incidentsSource.readFeatures(response));
+            });
     },
 
     strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
@@ -211,25 +222,25 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
         // Create the URL for the reqeust
         var url = '/geoserver/wfs?' +
             'service=WFS&request=GetFeature&' +
-            'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&'+
-            'srsname='+ projection.code_ + '&' +
+            'version=1.1.0&typename=' + featurePrefix + ':' + incidentsType + '&' +
+            'srsname=' + projection.code_ + '&' +
             'viewparams=' + viewparams;
 
         $.ajax({
-            url: encodeURI(url)
-        })
-        .done(function(response) {
-            var features = incidentsNeighbourhoodSource.readFeatures(response);
+                url: encodeURI(url)
+            })
+            .done(function(response) {
+                var features = incidentsNeighbourhoodSource.readFeatures(response);
 
-            // Custom clustering (not visual distance,
-            // but rather physical distance based k-means approach)
-            var clusters = kmeansClusters(features, 9);
-            incidentsNeighbourhoodSource.addFeatures(clusters);
-            // Route between clusters
-            if (mode == MODE.ZOOMED) {
-                connectCentroids(clusters);
-            }
-        });
+                // Custom clustering (not visual distance,
+                // but rather physical distance based k-means approach)
+                var clusters = kmeansClusters(features, 9);
+                incidentsNeighbourhoodSource.addFeatures(clusters);
+                // Route between clusters
+                if (mode == MODE.ZOOMED) {
+                    connectCentroids(clusters);
+                }
+            });
     },
 
     strategy: ol.loadingstrategy.all
@@ -282,8 +293,9 @@ var map = new ol.Map({
             group: 'background',
             source: new ol.source.XYZ({
                 urls: ['http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        'http://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        'http://c.tile.openstreetmap.org/{z}/{x}/{y}.png']
+                    'http://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    'http://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                ]
             }),
             visible: false
         }),
@@ -294,9 +306,10 @@ var map = new ol.Map({
             group: 'background',
             source: new ol.source.XYZ({
                 urls: ['http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-                        'http://otile2.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-                        'http://otile3.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-                        'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png']
+                    'http://otile2.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+                    'http://otile3.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+                    'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png'
+                ]
             }),
             visible: false
         }),
@@ -307,11 +320,14 @@ var map = new ol.Map({
             group: "background",
             source: new ol.source.XYZ({
                 urls: ['http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-                        'http://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-                        'http://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-                        'http://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'],
+                    'http://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    'http://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    'http://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
+                ],
                 tilePixelRatio: 2,
-                attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
+                attributions: [new ol.Attribution({
+                    html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>']
+                })]
             })
         }),
 
@@ -321,11 +337,14 @@ var map = new ol.Map({
             group: "background",
             source: new ol.source.XYZ({
                 urls: ['http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-                        'http://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-                        'http://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-                        'http://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+                    'http://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+                    'http://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+                    'http://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                ],
                 tilePixelRatio: 2,
-                attributions: [new ol.Attribution({ html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'] })]
+                attributions: [new ol.Attribution({
+                    html: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>']
+                })]
             }),
             visible: false
         }),
@@ -336,8 +355,9 @@ var map = new ol.Map({
             group: 'background',
             source: new ol.source.XYZ({
                 urls: ['http://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-                        'http://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-                        'http://c.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png']
+                    'http://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                    'http://c.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+                ]
             }),
             visible: false
         }),
@@ -385,6 +405,10 @@ var navigationLayer;
  */
 
 
+Array.prototype.shuffle = function() {
+    for (var j, x, i = this.length; i; j = Math.floor(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
+    return this;
+};
 
 function getCentroidLocations(features) {
     var points = [];
@@ -401,8 +425,8 @@ function getCentroidLocations(features) {
 function connectCentroids(f) {
     var directionsService = new google.maps.DirectionsService();
     points = getCentroidLocations(f);
-    var start = points.shift();
-    // var end = points.pop();
+
+    // convert all to waypoints
     var waypts = [];
     points.forEach(function(v) {
         waypts.push({
@@ -411,46 +435,78 @@ function connectCentroids(f) {
         });
     });
 
-    var request = {
-        origin: start[0] + ',' + start[1],
-        // destination: end[0] + ',' + end[1],
-        // form a loop
-        destination: start[0] + ',' + start[1],
-        // can only have 8 waypoints
-        waypoints: waypts.slice(0, 8),
-        optimizeWaypoints: true,
-        travelMode: google.maps.TravelMode.DRIVING
-    };
+    // request route starting with each point, for comparison
+    var start, requestWaypoints, request;
+    var noReturned = 0;
+    for (var i = 0; i < waypts.length; i++) {
+        start = waypts[i];
+        requestWaypoints = waypts.slice(0, i).concat(waypts.slice(i + 1, waypts.length));
 
-    console.log(request);
+        var request = {
+            origin: start.location,
+            // form a loop
+            destination: start.location,
+            waypoints: requestWaypoints,
+            optimizeWaypoints: true,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
 
-    directionsService.route(request, function(result, status) {
-        console.log(status);
-        console.log(result);
-        if (status == google.maps.DirectionsStatus.OK) {
-            var resultpoints = result.routes[0].overview_path;
-            var routeLatLn = [];
-            resultpoints.forEach(function(v) {
-                routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
-            });
-            navigationLayer = new ol.layer.Vector({
-                source: new ol.source.Vector({
-                    features: [new ol.Feature({
-                        geometry: new ol.geom.LineString(routeLatLn, 'XY'),
-                        name: 'Line'
-                    })]
+        console.log(request);
+
+        directionsService.route(request, function(result, status) {
+            console.log(result);
+
+            noRecordedRoutes++;
+            if (status == google.maps.DirectionsStatus.OK) {
+                recordRoute(result.routes[0], waypts.length);
+            }
+        });
+    }
+
+}
+
+var noRecordedRoutes = 0;
+var recordedRoutes = [];
+
+function recordRoute(route, targetNo) {
+    recordedRoutes.push(route);
+    console.log("Distance: " + route.legs[0].distance.value);
+    // noRecordedRoutes++;
+    if (noRecordedRoutes == targetNo) {
+        noRecordedRoutes = 0;
+
+        var shortest
+        var shortestDistance = 999999;
+        recordedRoutes.forEach(function (v) {
+            if (v.legs[0].distance.value < shortestDistance) {
+                shortestDistance = v.legs[0].distance.value;
+                shortest = v;
+            }
+        });
+        recordedRoutes = [];
+
+        var resultpoints = shortest.overview_path;
+        var routeLatLn = [];
+        resultpoints.forEach(function(v) {
+            routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
+        });
+        navigationLayer = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                features: [new ol.Feature({
+                    geometry: new ol.geom.LineString(routeLatLn, 'XY'),
+                    name: 'Line'
+                })]
+            }),
+            style: new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255,0,255,1)',
+                    width: 2
                 }),
-                style: new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: 'rgba(255,0,255,1)',
-                        width: 2
-                    }),
-                })
-            });
-            map.addLayer(navigationLayer);
-
-        }
-    });
+            })
+        });
+        console.log("Drawing new layer");
+        map.addLayer(navigationLayer);
+    }
 }
 
 function preventDefault(event) {
