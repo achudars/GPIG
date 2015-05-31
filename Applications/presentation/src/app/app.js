@@ -451,10 +451,10 @@ function connectCentroids(f) {
             travelMode: google.maps.TravelMode.DRIVING
         };
 
-        console.log(request);
+        // console.log(request);
 
         directionsService.route(request, function(result, status) {
-            console.log(result);
+            // console.log(result);
 
             noRecordedRoutes++;
             if (status == google.maps.DirectionsStatus.OK) {
@@ -470,7 +470,7 @@ var recordedRoutes = [];
 
 function recordRoute(route, targetNo) {
     recordedRoutes.push(route);
-    console.log("Distance: " + route.legs[0].distance.value);
+    // console.log("Distance: " + route.legs[0].distance.value);
     // noRecordedRoutes++;
     if (noRecordedRoutes == targetNo) {
         noRecordedRoutes = 0;
@@ -485,6 +485,7 @@ function recordRoute(route, targetNo) {
         });
         recordedRoutes = [];
 
+        console.log("Selecting shortest route: " + shortest.legs[0].distance.value);
         var resultpoints = shortest.overview_path;
         var routeLatLn = [];
         resultpoints.forEach(function(v) {
@@ -504,7 +505,6 @@ function recordRoute(route, targetNo) {
                 }),
             })
         });
-        console.log("Drawing new layer");
         map.addLayer(navigationLayer);
     }
 }
