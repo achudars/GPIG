@@ -9,7 +9,7 @@ var app = window.app;
  * @extends {ol.control.Control}
  * @param {Object=} opt_options Control options
  *                      sources - Sources to alter when the filter is changed, sets a key "filter"/"cqlFilter" on the source
- *                                  and triggers a change on the source
+ *                                  and optionally triggers a change on the source
  */
 app.FiltersControl = function(opt_options) {
     var options = opt_options || {};
@@ -276,13 +276,18 @@ app.FiltersControl = function(opt_options) {
         var cqlFilter = filterString(true);
 
         for (var i = 0, l = me.sources.length; i < l; i++) {
-            var source = me.sources[i];
+            var sourceOptions = me.sources[i];
+            var source = sourceOptions.source;
+            var reload = sourceOptions.reload;
+            if (reload == undefined) {
+                reload = true;
+            }
 
             source.filter = filter;
             source.cqlFilter = cqlFilter;
 
             source.clear(true);
-            if (typeof source.loader_ == 'function') {
+            if (reload && typeof source.loader_ == 'function') {
                 var view = me.map.getView(),
                 extent = view.calculateExtent(me.map.getSize());
                 source.loader_(extent, view.getResolution(), view.getProjection());

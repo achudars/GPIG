@@ -239,6 +239,7 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
                 // but rather physical distance based k-means approach)
                 var clusters = kmeansClusters(features, 9);
                 incidentsNeighbourhoodSource.addFeatures(clusters);
+
                 // Route between clusters
                 if (mode == MODE.ZOOMED) {
                     connectCentroids(clusters);
@@ -279,7 +280,9 @@ var map = new ol.Map({
         }),
 
         new app.FiltersControl({
-            sources: [neighbourhoodsStatsSource, incidentsSource, incidentsNeighbourhoodSource]
+            sources: [{ source: neighbourhoodsStatsSource },
+                      { source: incidentsSource },
+                      { source: incidentsNeighbourhoodSource, reload: false }]
         })
     ]),
 
@@ -494,6 +497,12 @@ function recordRoute(route, targetNo) {
         resultpoints.forEach(function(v) {
             routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
         });
+
+        if (navigationLayer != undefined) {
+            map.removeLayer(navigationLayer);
+            navigationLayer = undefined;
+        }
+
         navigationLayer = new ol.layer.Vector({
             source: new ol.source.Vector({
                 features: [new ol.Feature({
