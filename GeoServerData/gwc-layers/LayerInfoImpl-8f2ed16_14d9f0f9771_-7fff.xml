@@ -3,8 +3,8 @@
   <enabled>true</enabled>
   <name>crime:incidents</name>
   <mimeFormats>
-    <string>image/png</string>
     <string>image/jpeg</string>
+    <string>image/png</string>
   </mimeFormats>
   <gridSubsets>
     <gridSubset>

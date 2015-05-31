@@ -1,0 +1,32 @@
+<settings>
+  <id>SettingsInfoImpl-5d64dfec:14daacae815:-7fff</id>
+  <workspace>
+    <id>WorkspaceInfoImpl--285b7e02:14d4812a9f4:-7fff</id>
+    <name>crime</name>
+  </workspace>
+  <contact>
+    <id>contact</id>
+    <addressCity>New York</addressCity>
+    <addressCountry>USA</addressCountry>
+    <addressType>Work</addressType>
+    <contactEmail>contact@boundlessgeo.com</contactEmail>
+    <contactOrganization>Boundless</contactOrganization>
+    <contactPerson>Boundless</contactPerson>
+    <contactPosition>Customer Support</contactPosition>
+    <onlineResource>http://boundlessgeo.com/about/contact-us/customer-support/</onlineResource>
+  </contact>
+  <charset>UTF-8</charset>
+  <numDecimals>8</numDecimals>
+  <onlineResource>http://boundlessgeo.com/solutions/solutions-software/geoserver/</onlineResource>
+  <verbose>false</verbose>
+  <verboseExceptions>false</verboseExceptions>
+  <metadata>
+    <map>
+      <entry>
+        <string>quietOnNotFound</string>
+        <boolean>false</boolean>
+      </entry>
+    </map>
+  </metadata>
+  <localWorkspaceIncludesPrefix>false</localWorkspaceIncludesPrefix>
+</settings>
