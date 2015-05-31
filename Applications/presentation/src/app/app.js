@@ -193,15 +193,19 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
 
     loader: function(extent, resolution, projection) {
         // Create the URL for the request
-        var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = "";
+
+        if (extent.join(',') != [-Infinity, -Infinity, Infinity, Infinity].join(',')) {
+            var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
+            viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326' + ';';
+        }
 
         if (this.filter) {
-            viewparams += ";" + this.filter;
+            viewparams += this.filter + ";";
         }
 
         if (this.neighbourhoodGID) {
-            viewparams += ";" + "NEIGHBOURHOOD:" + this.neighbourhoodGID.split('.').pop();
+            viewparams += "NEIGHBOURHOOD:" + this.neighbourhoodGID.split('.').pop() + ";";
         }
 
         // Create the URL for the reqeust
@@ -222,7 +226,9 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
             var clusters = kmeansClusters(features, 9);
             incidentsNeighbourhoodSource.addFeatures(clusters);
         });
-    }
+    },
+
+    strategy: ol.loadingstrategy.all
 });
 
 var incidentsNeighbourhoodLayer = new ol.layer.Vector({
