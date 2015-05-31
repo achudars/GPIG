@@ -226,7 +226,9 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
             var clusters = kmeansClusters(features, 9);
             incidentsNeighbourhoodSource.addFeatures(clusters);
             // Route between clusters
-            connectCentroids(clusters);
+            if (mode == MODE.ZOOMED) {
+                connectCentroids(clusters);
+            }
         });
     },
 
