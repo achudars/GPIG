@@ -14,248 +14,331 @@
  *                      should avoid calling functions on the popup)
  */
 
-$( document ).ready(function() {
-    $(".chartTabs").click(function() {
- 
-        $(".chartTabs").removeClass("selectedTab");
-        $(this).addClass("selectedTab");
-        generatePopupContent();
-        
+
+if (!window.app) {
+    window.app = {};
+}
+var app = window.app;
+
+
+//should have a parent object with police. TODO if there's time. 
+app.Statistics = function() {
+    this.neighbourhoods = [];
+    var that = this;
+    this.plotLimit = 3;
+    this.pieLimit = 6;
+    this.popup ;
+    
+    //Listeners
+    $( document ).ready(function() {
+        $(".chartTabs").click(function() {
+            $(".chartTabs").removeClass("selectedTab");
+            $(this).addClass("selectedTab");
+            that.generatePopupContent();
+        });
     });
-});
-
-var popupFeature;
-
-function setFeature(feature){
-    popupFeature= feature;
 }
 
-//PLEASE DON'T REFACTOR - WORK IN PROGRESS
-function generatePopupContent() {
-    // Currently creates a pie chart, can use the other functions
-    // to create other types of charts
-    var popup = "#statsModal";
-    var feature = popupFeature;
+app.Statistics.prototype.setPopup = function(popup){
+    this.popup = popup;
+}
+
+//should have a parent object with police. TODO if there's time. 
+app.Statistics.prototype.setNeighbourhoods = function(newNeighbourhoods) {
+    if (newNeighbourhoods.constructor === Array)
+        this.neighbourhoods = newNeighbourhoods;
+    else
+        this.neighbourhoods = [];
+}
+
+app.Statistics.prototype.generatePopupContent = function() {
     var selectedTab = $(".chartTabs.selectedTab").prop("id");
-    
-    
-    // $("#plots").highcharts().destroy();
+    var popup = this.popup;
    
-    
-    switch(selectedTab) {
-        case "pie":
-             generatePopupPie(feature, popup);
-            break;
-        case "overTime":
-            generatePopupCharts(feature, popup);
-            break;
-        default:
-           // default code block
+    if(popup == "#plots") {
+        switch(selectedTab) {
+            case "pie":
+                this.generatePopupPie(popup);
+                break;
+            case "overTime":
+                this.generatePopupCharts(popup);
+                break;
+            default:
+            // default code block
         }
+    }else {
+        this.generatePopupPie(popup);
+        this.generatePopupCharts(popup+"2");
+        
+    }
+    
     
    
-    
 }
 
-//PLEASE DON'T REFACTOR - WORK IN PROGRESS
-function generatePopupCharts(feature, popup) {
-    var periodicstats = feature.get('stats2'), limit = 5, title="", crimeCounts = 0;
-    periodicstats = (typeof periodicstats !== 'undefined'? JSON.parse(periodicstats): false);
 
+
+app.Statistics.prototype.generatePopupCharts = function(popup) {
+    var that = this, 
+    limit = this.plotLimit,
+    features = this.neighbourhoods,
+    title="", crimeCounts = 0;
+        
+    var plotTitle = 'Highest Crimes over time in ' + this.getPostCodes(features);    
+    
     //get array of names of highest crimes
-    var someCrimes = getBiggestCrimeNames(feature, limit);
-    //get dates TODO FIX THIS IS BAD
-    var crimeCategories= getCrimeCategories(periodicstats, someCrimes);
+    var someCrimes = that.getBiggestCrimeNames(features, limit);
+    
+    //get array of dates
+    var crimeCategories= that.getCrimeCategories(features, someCrimes);
    
-   //construct array that's supported by charts
+    //construct array that's supported by charts
     var crimeData = someCrimes.map(function(element) {
-                title = element.replace(/-/g, ' ');
-                title = title.charAt(0).toUpperCase() + title.slice(1);
-                crimeCounts = getCrimeCounts(periodicstats, element,crimeCategories );
-                return {name: title, data: crimeCounts};
+        title = element.replace(/-/g, ' ');
+        title = title.charAt(0).toUpperCase() + title.slice(1);
+        crimeCounts = that.getCrimeCounts(features, element,crimeCategories );
+        return {
+            name: title, 
+            data: crimeCounts
+        };
     });
     
-  
+    var pieSizes = this.getSizes();
  
-        $("#plots").highcharts({
+    $(popup).highcharts({
+        title: {
+            text: plotTitle,
+            x: 0 //center
+        },
+        chart: {
+            width: pieSizes.width,
+            height: pieSizes.height
+        },
+        xAxis: {
+            categories: crimeCategories,
             title: {
-                text: "Crime rate over time",
-                x: 0 //center
+                text: 'Date'
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Crime count'
             },
-            xAxis: {
-                categories: crimeCategories,
-                title: {
-                    text: 'Date'
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip:{
+            hideDelay: 5,
+            backgroundColor: 'white',
+            headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
+            borderColor: 'black',
+            borderWidth: 1
+        },
+        series: crimeData
+    });
+ 
+}
+
+
+
+app.Statistics.prototype.generatePopupPie = function(popup) {
+    var features = this.neighbourhoods, 
+    limit = this.pieLimit; // Number of different types that are allowed 
+
+    var pieTitle = 'Highest Crimes in ' + this.getPostCodes(features);
+  
+    var stats = this.getBiggestCrimes(features);
+    if (stats != false) {
+
+        var other = stats.slice(limit).reduce(function(current, next) {
+            return current + next.count;
+        }, 0);
+
+        var style = new app.Style();
+        var data = stats.slice(0, limit).map(function(element) {
+            var title = element.crime.replace(/-/g, ' ');
+            return {
+                name: title.charAt(0).toUpperCase() + title.slice(1), 
+                y: element.count, 
+                color: style.generateColour(element.crime)
+                };
+        });
+
+        if (other > 0) {
+            data.push({
+                name: "Other crimes", 
+                y: other, 
+                color: style.generateColour('other-crime')
+                });
+        }
+
+        var pieSizes = this.getSizes();
+
+        $(popup).highcharts({
+            chart: {
+                type: 'pie',
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                width: pieSizes.width,
+                height: pieSizes.height
+                
+            },
+            title: {
+                text: pieTitle
+            },
+            tooltip: {
+                pointFormat: 'Share: <b>{point.percentage:.1f}%</b>',
+                hideDelay: 5,
+                backgroundColor: 'white',
+                headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
+                borderColor: 'black',
+                borderWidth: 1
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: false,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.name}: {point.y} ',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor),
+                             fontSize: pieSizes.font
+                        }
+                    }
                 }
             },
-            yAxis: {
-                title: {
-                    text: 'Crime count'
-                },
-                plotLines: [{
-                    value: 0,
-                    width: 1,
-                    color: '#808080'
-                }]
-            },
-            tooltip:{
-                hideDelay: 5,
-                        backgroundColor: 'white',
-                        headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
-                        borderColor: 'black',
-                        borderWidth: 1
-            },
-            series: crimeData
+            series: [{
+                data: data
+            }]
         });
- 
-    
-}
-
-//PLEASE DON'T REFACTOR - WORK IN PROGRESS
-function generatePopupPie(feature, popup) {
-    // Look if feature has stats (neighbourhood)
-    if (feature.get('stats')) {
-        var stats = feature.get('stats');
-        stats = (typeof stats !== 'undefined'? JSON.parse(stats): false);
-
-        if (stats != false) {
-            // Create a chart element
-          
-
-            // Get the data from stats, sort it, and merge if needed
-            //GET BIGGER STATS, DO NOT REVERSE THIS!!!!!!
-            if (stats.length > 1) {
-                stats = stats.sort(function(a, b) {
-                    return b.count - a.count;
-                });
-            }
-
-            var other= 0;
-            var limit = 6; // Number of different types that are allowed
-            var others = stats.slice(limit).reduce(function(current, next) {
-                return current + next.count;
-            }, 0);
-
-            var style = new app.Style()
-            var data = stats.slice(0, limit).map(function(element) {
-                var title = element.crime.replace(/-/g, ' ');
-                return {name: title.charAt(0).toUpperCase() + title.slice(1), y: element.count, color: style.generateColour(element.crime)};
-            });
-
-            if (other > 0) {
-                data.push({name: "Other crimes", y: other, color: style.generateColour('other-crime')});
-            }
-
-                $('#plots').highcharts({
-                    chart: {
-                        type: 'pie',
-                        plotBackgroundColor: null,
-                        plotBorderWidth: null,
-                        plotShadow: false,
-                        width: 600,
-                        height: 300
-                    },
-                    title: {
-                        text: 'Crimes in ' + feature.get('name')
-                    },
-                    tooltip: {
-                        pointFormat: 'Share: <b>{point.percentage:.1f}%</b>',
-                        hideDelay: 5,
-                        backgroundColor: 'white',
-                        headerFormat: '<span style="font-size: 13px; font-weight: 700;">{point.key}</span><br/>',
-                        borderColor: 'black',
-                        borderWidth: 1
-                    },
-                    plotOptions: {
-                        pie: {
-                            allowPointSelect: false,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: true,
-                                format: '{point.name}: {point.y} ',
-                                style: {
-                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor)
-                                }
-                            }
-                        }
-                    },
-                    series: [{
-                        data: data
-                    }]
-                });
 
                 
            
 
-            $(popup).on('didHide', function(event) {
-               // $(container).highcharts().destroy();
-               // $(container).remove();
-               // $(popup).off(event);
-            });
+    //$(popup).on('didHide', function(event) {
+    // $(container).highcharts().destroy();
+    // $(container).remove();
+    // $(popup).off(event);
+    //});
 
            
-        }
+        
     }
 
  
 }
 
+app.Statistics.prototype.getPostCodes = function(features){
+    return features.map(function(element) {
+       return element.get("name");
+    }).join(", ");
+}
+
+app.Statistics.prototype.getSizes = function(){
+    var chartSizes;
+    if(this.popup == "#plots"){
+        chartSizes = {"width": 600, "height":300, "font" : "12px"};
+    }else {
+        chartSizes = {"width": 380, "height":300, "font": "9px"};
+    }
+    return chartSizes;
+}
+
 
 //PLEASE DON'T REFACTOR - WORK IN PROGRESS
-function getCrimeCounts(periodicstats, crimeName , crimeCategories){
-    var crimeArray = $.grep(periodicstats, function(e){ return e.crime == crimeName; });
-    if (crimeArray.length < 1) return 0;
+app.Statistics.prototype.getCrimeCounts=function(features, crimeName , crimeCategories){
+    var crimeCounts = Array.apply(null, new Array(crimeCategories.length)).map(Number.prototype.valueOf,0);
+    
+    for(var i =0; i<features.length; i++) {
+        var feature = this.extractFeature(features[i], "periodicstats");
+        var crimeArray = $.grep(feature, function(e){
+            return e.crime == crimeName;
+        });
+        if (crimeArray.length > 0) {
+            crimeArray = crimeArray.sort(function(a,b){
+                return new Date(a.date) - new Date(b.date);
+            });
 
-    crimeArray = crimeArray.sort(function(a,b){
-        return new Date(a.date) - new Date(b.date);
-    });
-    
-    var crimeCounts = crimeCategories.map(function(date) {
-        var counts=  $.grep(crimeArray, function(e){ return e.date == date; });
-        return (counts.length == 0 ? 0 : counts[0].count);
-    });
-    
-   
+            crimeCounts = crimeCategories.map(function(date, idx) {
+                var counts=  $.grep(crimeArray, function(e){
+                    return e.date == date;
+                });
+                return (counts.length == 0 ? 0 : counts[0].count) + crimeCounts[idx];
+            });
+        } 
+    }
     return crimeCounts;
 }
 
+
 //PLEASE DON'T REFACTOR - WORK IN PROGRESS
-function getCrimeCategories(periodicstats, crimeName){
+app.Statistics.prototype.getCrimeCategories = function(features, crimeName){
     var dates = [], crimeCategories=[];
-    
-    for(var i = 0; i<crimeName.length; i++) {
-        dates = $.grep(periodicstats, function(e){ 
-            return (e.crime == crimeName[i]) && (jQuery.inArray( e.date , crimeCategories )<0); 
-        });
-        crimeCategories = crimeCategories.concat(dates.map(function(d) {    
-            return d.date;
-        }));
+    for(var j = 0; j< features.length;j++) {
+        var periodicstats =this.extractFeature(features[j], "periodicstats");
+        if(periodicstats !== false){
+            for(var i = 0; i<crimeName.length; i++) {
+                dates = $.grep(periodicstats, function(e){ 
+                    return (e.crime == crimeName[i]) && (jQuery.inArray( e.date , crimeCategories )<0); 
+                });
+                crimeCategories = crimeCategories.concat(dates.map(function(d) {    
+                    return d.date;
+                }));
+            }
+        }
     }
-    
     crimeCategories =crimeCategories.sort(function(a,b){
         return new Date(a) - new Date(b);
     });
 
     return crimeCategories;
-    
-    
 }
 
-function getBiggestCrimeNames(feature, limit) {
-    var stats = feature.get('stats');
-    stats = (typeof stats !== 'undefined'? JSON.parse(stats): false);
 
+app.Statistics.prototype.getBiggestCrimes = function(features){
+    var statCounts = this.extractFeature(features[0], "stats");
+    
+    for(var i = 1; i < features.length; i++){
+        var stats = this.extractFeature(features[i], "stats");
+        
+        //add counts from all neighbourhoods
+        statCounts = stats.map(function(element){ 
+            var rObj = {};
+            rObj.crime = element.crime;            
+            var counts = $.grep(statCounts, function(e){
+                return e.crime == element.crime;
+            });
+            rObj.count = (counts.length>0 ? element.count + counts[0].count : element.count) ;
+            return rObj;
+        });
+    }
+    
     // Get the data from stats, sort it (DESCENDING), and merge if needed
-    if (stats.length > 1) {
-        stats = stats.sort(function(a, b) {
+    if (statCounts.length > 1) {
+        statCounts = statCounts.sort(function(a, b) {
             return b.count - a.count;
         });
     }
+    return statCounts;
+}
 
+
+app.Statistics.prototype.getBiggestCrimeNames = function(features, limit) {
+    var stats = this.getBiggestCrimes(features);
     var data = stats.slice(0, limit).map(function(element) {
         return element.crime;
     });
-
     return data;
+}
 
+
+app.Statistics.prototype.extractFeature = function(feature,name){
+    var periodicstats = feature.get(name);
+    periodicstats = (typeof periodicstats !== 'undefined'? JSON.parse(periodicstats): false);
+    return periodicstats;
 }

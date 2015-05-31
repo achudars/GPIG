@@ -65,6 +65,9 @@ var selectedNeighbourhoodGIDs = [];
 // Police distributor
 var policeDistributor = new app.PoliceDistributor();
 
+//Statistics 
+var statsGenerator = new app.Statistics();
+
 /**
  *  Sources
  */
@@ -564,6 +567,22 @@ function distributeForces(event) {
     policeDistributor.startDistributionFlow();
 }
 
+function calculateStats(event) {
+    if ($(event.target).hasClass("disabled"))
+        return;
+
+     var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
+        return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
+    });
+
+    statsGenerator.setNeighbourhoods(features);
+    statsGenerator.setPopup("#plots");   
+    $("#statsModal").modal().show();
+    statsGenerator.generatePopupContent();    
+    
+}
+
+
 // Capture hover events
 map.on('pointermove', function(evt) {
     // Ignore panning events
@@ -610,6 +629,8 @@ map.on('pointermove', function(evt) {
     }
 });
 
+
+
 // Capture single clicks (in both modes)
 map.on('singleclick', function(evt) {
     var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
@@ -618,11 +639,9 @@ map.on('singleclick', function(evt) {
 
         if (mode == MODE.INTERACTION) {
             // Populate our stats drawer
-            if (typeof generatePopupContent == 'function') {
-                var content = generatePopupContent(feature, content);
-                $(statsDrawer).find('.content')[0].innerHTML = content;
-            }
-
+            statsGenerator.setNeighbourhoods([feature]);
+            statsGenerator.setPopup("#pies"); 
+            statsGenerator.generatePopupContent();    
             setMode(MODE.ZOOMED, feature);
         } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
             setMode(MODE.INTERACTION);

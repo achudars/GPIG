@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="src/css/Popup.css">
     <link rel="stylesheet" href="src/css/LayersControl.css">
     <link rel="stylesheet" href="src/css/Main.css">
+    <link rel="stylesheet" href="src/css/Stats.css">
 
     <!-- jQuery/jQuery UI -->
     <link rel="stylesheet" href="src/jquery/jquery-ui-1.11.4/jquery-ui.css">
@@ -46,11 +47,7 @@
                <button type="button" class="btn btn-default chartTabs" id="overTime">TODO MORE STATS</button>
             </div>
             <div class="modal-body">
-
                 <div id="plots"></div>
-
-
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -83,12 +80,21 @@
                   <li><a href="#" onclick="distributeForces(event); return false;" class="selection-required">Distribute</a></li>
               </ul>
           </li>
+           <li class="dropdown">
+              <a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bar-chart-o" style="color: white;"></i>&nbsp;&nbsp;Crime Statistics <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                  <li><a href="#" onclick="toggleMode(); return false;" class="selection-toggle">Select Regions</a></li>
+                  <li><a href="#" onclick="calculateStats(event); return false;" class="selection-required">Show Statistics</a></li>
+              </ul>
+          </li>
         </ul>
       </div><!--/.navbar-collapse -->
     </div>
     <div id="map">
         <div id="drawer" style="display: none;">
             <div class="content">
+                <div id="pies"> </div>
+                <div id="pies2"> </div>
             </div>
         </div>
     </div>
