@@ -196,15 +196,19 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
 
     loader: function(extent, resolution, projection) {
         // Create the URL for the request
-        var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
-        var viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326';
+        var viewparams = "";
+
+        if (extent.join(',') != [-Infinity, -Infinity, Infinity, Infinity].join(',')) {
+            var transformed = ol.extent.applyTransform(extent, ol.proj.getTransform(projection, 'EPSG:4326'));
+            viewparams = "AREA:" + transformed.join('\\\,') + '\\\,4326' + ';';
+        }
 
         if (this.filter) {
-            viewparams += ";" + this.filter;
+            viewparams += this.filter + ";";
         }
 
         if (this.neighbourhoodGID) {
-            viewparams += ";" + "NEIGHBOURHOOD:" + this.neighbourhoodGID.split('.').pop();
+            viewparams += "NEIGHBOURHOOD:" + this.neighbourhoodGID.split('.').pop() + ";";
         }
 
         // Create the URL for the reqeust
@@ -224,9 +228,16 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
             // but rather physical distance based k-means approach)
             var clusters = kmeansClusters(features, 9);
             incidentsNeighbourhoodSource.addFeatures(clusters);
+            // Route between clusters
+            if (mode == MODE.ZOOMED) {
+                connectCentroids(clusters);
+            }
         });
-    }
+    },
+
+    strategy: ol.loadingstrategy.all
 });
+
 
 var incidentsNeighbourhoodLayer = new ol.layer.Vector({
     source: incidentsNeighbourhoodSource,
@@ -369,9 +380,81 @@ var map = new ol.Map({
 });
 
 
+// for the routing information
+var navigationLayer;
+
 /**
  *  Helpers
  */
+
+
+
+function getCentroidLocations(features) {
+    var points = [];
+    // var features = centroidsSource.getFeatures();
+    var p;
+    features.forEach(function(v) {
+        p = v.getGeometry().getCoordinates();
+        p = ol.proj.transform([p[0], p[1]], 'EPSG:3857', 'EPSG:4326');
+        points.push([p[1], p[0]]);
+    });
+    return points;
+}
+
+function connectCentroids(f) {
+    var directionsService = new google.maps.DirectionsService();
+    points = getCentroidLocations(f);
+    var start = points.shift();
+    // var end = points.pop();
+    var waypts = [];
+    points.forEach(function(v) {
+        waypts.push({
+            location: v[0] + ',' + v[1],
+            stopover: false
+        });
+    });
+
+    var request = {
+        origin: start[0] + ',' + start[1],
+        // destination: end[0] + ',' + end[1],
+        // form a loop
+        destination: start[0] + ',' + start[1],
+        // can only have 8 waypoints
+        waypoints: waypts.slice(0, 8),
+        optimizeWaypoints: true,
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    console.log(request);
+
+    directionsService.route(request, function(result, status) {
+        console.log(status);
+        console.log(result);
+        if (status == google.maps.DirectionsStatus.OK) {
+            var resultpoints = result.routes[0].overview_path;
+            var routeLatLn = [];
+            resultpoints.forEach(function(v) {
+                routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
+            });
+            navigationLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: [new ol.Feature({
+                        geometry: new ol.geom.LineString(routeLatLn, 'XY'),
+                        name: 'Line'
+                    })]
+                }),
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(255,0,255,1)',
+                        width: 2
+                    }),
+                })
+            });
+            map.addLayer(navigationLayer);
+
+        }
+    });
+}
 
 function preventDefault(event) {
     event.preventDefault();
@@ -644,6 +727,11 @@ map.on('singleclick', function(evt) {
             statsGenerator.generatePopupContent();    
             setMode(MODE.ZOOMED, feature);
         } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
+            // remove navigation information
+            if (navigationLayer) {
+                map.removeLayer(navigationLayer);
+                navigationLayer = null;
+            }
             setMode(MODE.INTERACTION);
         } else if (mode == MODE.SELECTION) {
             var gid = feature.getId();
@@ -682,3 +770,4 @@ map.on('singleclick', function(evt) {
 // By default disable all selection based items
 $(".selection-required").addClass("disabled");
 $('a.selection-required').on("click", preventDefault);
+
