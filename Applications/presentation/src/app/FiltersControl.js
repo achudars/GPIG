@@ -173,9 +173,10 @@ app.FiltersControl = function(opt_options) {
                 }
 
                 var value = element.value;
-                var group = crimeGroups.find(function(element) {
-                    return element.items.indexOf(value) != -1;
-                });
+                
+                //var group = crimeGroups.find(function(element) {
+                 //   return element.items.indexOf(value) != -1;
+                //});
 
                 if (group != undefined && groups.indexOf(group) == -1) {
                     groups.push(group);

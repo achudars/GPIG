@@ -81,6 +81,7 @@ ol.Feature.prototype.getLayer = function(map) {
 
 ol.Feature.prototype.restyle = function(map) {
     var layer = this.getLayer(map);
+    if(layer === undefined) return;
     var styleFunction = layer.getStyleFunction();
     var resolution = map.getView().getResolution();
     this.setStyle(styleFunction(this, resolution));

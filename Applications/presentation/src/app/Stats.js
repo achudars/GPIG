@@ -51,6 +51,34 @@ app.Statistics.prototype.setNeighbourhoods = function(newNeighbourhoods) {
         this.neighbourhoods = [];
 }
 
+app.Statistics.prototype.resetFeature = function(){
+    var features = this.neighbourhoods;
+    if(features.length !== 1) return;
+    var gid = features[0].getId();
+    var feature = neighbourhoodsStatsSource.getFeatureById(gid);
+    
+    
+   // var coord = [-120434.24176069787, 7162426.352546368];
+    //var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coord);
+    console.log(feature);
+    
+    //console.log(gid);
+   // console.log(neighbourhoodsStatsSource);
+    //var features =source.getFeatures();
+   // console.log(features);
+    /*
+    var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
+        console.log(element.getId());
+        return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
+    });
+    
+    */
+    //this.setNeighbourhoods([feature]);
+   // console.log(feature);
+    
+    
+}
+
 app.Statistics.prototype.generatePopupContent = function() {
     var selectedTab = $(".chartTabs.selectedTab").prop("id");
     var popup = this.popup;
@@ -72,8 +100,6 @@ app.Statistics.prototype.generatePopupContent = function() {
         
     }
     
-    
-   
 }
 
 
@@ -92,14 +118,18 @@ app.Statistics.prototype.generatePopupCharts = function(popup) {
     //get array of dates
     var crimeCategories= that.getCrimeCategories(features, someCrimes);
    
+   var style = new app.Style();
+   
     //construct array that's supported by charts
     var crimeData = someCrimes.map(function(element) {
+        var crimeColor = style.generateColour(element);
         title = element.replace(/-/g, ' ');
         title = title.charAt(0).toUpperCase() + title.slice(1);
         crimeCounts = that.getCrimeCounts(features, element,crimeCategories );
         return {
             name: title, 
-            data: crimeCounts
+            data: crimeCounts,
+            color: crimeColor
         };
     });
     
