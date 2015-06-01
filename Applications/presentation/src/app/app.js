@@ -8,6 +8,7 @@
  * @require Style.js
  * @require PoliceDistribution.js
  * @require Clustering.js
+ * @require Navigation.js
  */
 
 // ========= config section ================================================
@@ -78,6 +79,9 @@ var policeDistributor = new app.PoliceDistributor();
 
 //Statistics 
 var statsGenerator = new app.Statistics();
+
+// Navigation
+var navigation = new app.Navigation();
 
 /**
  *  Sources
@@ -242,7 +246,7 @@ var incidentsNeighbourhoodSource = new ol.source.ServerVector({
 
                 // Route between clusters
                 if (mode == MODE.ZOOMED) {
-                    connectCentroids(clusters);
+                    navigation.connectCentroids(clusters);
                 }
             });
     },
@@ -297,9 +301,14 @@ var map = new ol.Map({
         }),
 
         new app.FiltersControl({
-            sources: [{ source: neighbourhoodsStatsSource },
-                      { source: incidentsSource },
-                      { source: incidentsNeighbourhoodSource, reload: false }]
+            sources: [{
+                source: neighbourhoodsStatsSource
+            }, {
+                source: incidentsSource
+            }, {
+                source: incidentsNeighbourhoodSource,
+                reload: false
+            }]
         })
     ]),
 
@@ -424,99 +433,6 @@ var map = new ol.Map({
 /**
  *  Helpers
  */
-
-
-Array.prototype.shuffle = function() {
-    for (var j, x, i = this.length; i; j = Math.floor(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
-    return this;
-};
-
-function getCentroidLocations(features) {
-    var points = [];
-    // var features = centroidsSource.getFeatures();
-    var p;
-    features.forEach(function(v) {
-        p = v.getGeometry().getCoordinates();
-        p = ol.proj.transform([p[0], p[1]], 'EPSG:3857', 'EPSG:4326');
-        points.push([p[1], p[0]]);
-    });
-    return points;
-}
-
-function connectCentroids(f) {
-    var directionsService = new google.maps.DirectionsService();
-    points = getCentroidLocations(f);
-
-    // convert all to waypoints
-    var waypts = [];
-    points.forEach(function(v) {
-        waypts.push({
-            location: v[0] + ',' + v[1],
-            stopover: false
-        });
-    });
-
-    // request route starting with each point, for comparison
-    var start, requestWaypoints, request;
-    var noReturned = 0;
-    for (var i = 0; i < waypts.length; i++) {
-        start = waypts[i];
-        requestWaypoints = waypts.slice(0, i).concat(waypts.slice(i + 1, waypts.length));
-
-        var request = {
-            origin: start.location,
-            // form a loop
-            destination: start.location,
-            waypoints: requestWaypoints,
-            optimizeWaypoints: true,
-            travelMode: google.maps.TravelMode.DRIVING
-        };
-
-        directionsService.route(request, function(result, status) {
-            noRecordedRoutes++;
-            if (status == google.maps.DirectionsStatus.OK) {
-                recordRoute(result.routes[0], waypts.length);
-            }
-        });
-    }
-
-}
-
-var noRecordedRoutes = 0;
-var recordedRoutes = [];
-
-function recordRoute(route, targetNo) {
-    recordedRoutes.push(route);
-    // console.log("Distance: " + route.legs[0].distance.value);
-    // noRecordedRoutes++;
-    if (noRecordedRoutes == targetNo) {
-        noRecordedRoutes = 0;
-
-        var shortest
-        var shortestDistance = 999999;
-        recordedRoutes.forEach(function (v) {
-            if (v.legs[0].distance.value < shortestDistance) {
-                shortestDistance = v.legs[0].distance.value;
-                shortest = v;
-            }
-        });
-        recordedRoutes = [];
-
-        var resultpoints = shortest.overview_path;
-        var routeLatLn = [];
-        resultpoints.forEach(function(v) {
-            routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
-        });
-
-        neighbourhoodNavigationLayer.setSource(new ol.source.Vector({
-            features: [new ol.Feature({
-                geometry: new ol.geom.LineString(routeLatLn, 'XY'),
-                name: 'Line'
-            })]
-        }));
-        neighbourhoodNavigationLayer.setVisible(true);
-    }
-}
 
 function preventDefault(event) {
     event.preventDefault();
@@ -720,15 +636,15 @@ function calculateStats(event) {
     if ($(event.target).hasClass("disabled"))
         return;
 
-     var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
+    var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
         return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
     });
 
     statsGenerator.setNeighbourhoods(features);
-    statsGenerator.setPopup("#plots");   
+    statsGenerator.setPopup("#plots");
     $("#statsModal").modal().show();
-    statsGenerator.generatePopupContent();    
-    
+    statsGenerator.generatePopupContent();
+
 }
 
 
@@ -789,8 +705,8 @@ map.on('singleclick', function(evt) {
         if (mode == MODE.INTERACTION) {
             // Populate our stats drawer
             statsGenerator.setNeighbourhoods([feature]);
-            statsGenerator.setPopup("#pies"); 
-            statsGenerator.generatePopupContent();    
+            statsGenerator.setPopup("#pies");
+            statsGenerator.generatePopupContent();
             setMode(MODE.ZOOMED, feature);
         } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
             setMode(MODE.INTERACTION);
