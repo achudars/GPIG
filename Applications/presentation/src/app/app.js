@@ -514,6 +514,7 @@ function recordRoute(route, targetNo) {
                 name: 'Line'
             })]
         }));
+        neighbourhoodNavigationLayer.setVisible(true);
     }
 }
 
@@ -657,7 +658,6 @@ function setMode(newMode, object) {
             // Make the incidents visible
             setTimeout(function() {
                 incidentsNeighbourhoodLayer.setVisible(true);
-                neighbourhoodNavigationLayer.setVisible(true);
             }, 750);
 
             // Show the drawer
