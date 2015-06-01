@@ -19,12 +19,24 @@ body {
 #drawer {
     display: none;
     position: absolute;
+    overflow-y: auto;
     top: 71px;
+    max-height: calc(760px - 71px);
+
     z-index: 2;
     width: 410px;
     background-color: white;
 
     box-shadow: 3px 0px 5px rgba(0,0,0,0.2);
+}
+
+@media only screen and (max-height: 760px) {
+
+#drawer {
+    /* Snap to bottom, this will start the scrolling */
+    bottom: 0px;
+}
+
 }
 
 #drawer .content {
