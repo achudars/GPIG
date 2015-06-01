@@ -141,16 +141,18 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
         var distributionRatios = [];
         var distributions = [];
         var sum = 0;
+        var i = 0;
 
-        for (i in me.neighbourhoods) {
+        for (i = 0, l = me.neighbourhoods.length; i < l; i++) {
             var neighbourhood = me.neighbourhoods[i];
+
             var crimeCount = parseInt(neighbourhood.get('crimecount'));
             crimeCounts.push(crimeCount);
 
             sum += crimeCount;
         }
 
-        for (i in crimeCounts) {
+        for (i = 0, l = crimeCounts.length; i < l; i++) {
             var ratio = crimeCounts[i] / sum;
 
             distributionRatios.push(ratio);
@@ -168,7 +170,7 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
                             </thead>\
                             <tbody>';
 
-        for (i in distributions) {
+        for (i = 0, l = me.neighbourhoods.length; i < l; i++) {
             var neighbourhood = me.neighbourhoods[i];
             row = '<tr><td>'+ neighbourhood.get('name') + '</td><td>' + distributions[i] +'</td></tr>';
             element += row;
