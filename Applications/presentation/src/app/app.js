@@ -259,6 +259,23 @@ var incidentsNeighbourhoodLayer = new ol.layer.Vector({
     visible: false
 });
 
+var neighbourhoodNavigationLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+        features: []
+    }),
+    style: [new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: '#8D8E8E',
+            width: 4
+        })
+    }), new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: '#52D1DC',
+            width: 2
+        }),
+    })]
+})
+
 
 /**
  *  Map
@@ -390,6 +407,7 @@ var map = new ol.Map({
             visible: false
         }),
 
+        neighbourhoodNavigationLayer,
         incidentsNeighbourhoodLayer
     ],
 
@@ -402,9 +420,6 @@ var map = new ol.Map({
     })
 });
 
-
-// for the routing information
-var navigationLayer;
 
 /**
  *  Helpers
@@ -457,11 +472,7 @@ function connectCentroids(f) {
             travelMode: google.maps.TravelMode.DRIVING
         };
 
-        // console.log(request);
-
         directionsService.route(request, function(result, status) {
-            // console.log(result);
-
             noRecordedRoutes++;
             if (status == google.maps.DirectionsStatus.OK) {
                 recordRoute(result.routes[0], waypts.length);
@@ -491,33 +502,18 @@ function recordRoute(route, targetNo) {
         });
         recordedRoutes = [];
 
-        console.log("Selecting shortest route: " + shortest.legs[0].distance.value);
         var resultpoints = shortest.overview_path;
         var routeLatLn = [];
         resultpoints.forEach(function(v) {
             routeLatLn.push(ol.proj.transform([v.F, v.A], 'EPSG:4326', 'EPSG:3857'));
         });
 
-        if (navigationLayer != undefined) {
-            map.removeLayer(navigationLayer);
-            navigationLayer = undefined;
-        }
-
-        navigationLayer = new ol.layer.Vector({
-            source: new ol.source.Vector({
-                features: [new ol.Feature({
-                    geometry: new ol.geom.LineString(routeLatLn, 'XY'),
-                    name: 'Line'
-                })]
-            }),
-            style: new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(255,0,255,1)',
-                    width: 2
-                }),
-            })
-        });
-        map.addLayer(navigationLayer);
+        neighbourhoodNavigationLayer.setSource(new ol.source.Vector({
+            features: [new ol.Feature({
+                geometry: new ol.geom.LineString(routeLatLn, 'XY'),
+                name: 'Line'
+            })]
+        }));
     }
 }
 
@@ -577,6 +573,9 @@ function setMode(newMode, object) {
 
             // Hide/Clear zoomed incidents
             incidentsNeighbourhoodLayer.setVisible(false);
+
+            // Do the same for the navigation layer
+            neighbourhoodNavigationLayer.setVisible(false);
 
             map.once('postrender', function() {
                 // Restyle the layer/feature
@@ -658,6 +657,7 @@ function setMode(newMode, object) {
             // Make the incidents visible
             setTimeout(function() {
                 incidentsNeighbourhoodLayer.setVisible(true);
+                neighbourhoodNavigationLayer.setVisible(true);
             }, 750);
 
             // Show the drawer
@@ -793,11 +793,6 @@ map.on('singleclick', function(evt) {
             statsGenerator.generatePopupContent();    
             setMode(MODE.ZOOMED, feature);
         } else if (mode == MODE.ZOOMED && feature.getId() != zoomState.featureGID) {
-            // remove navigation information
-            if (navigationLayer) {
-                map.removeLayer(navigationLayer);
-                navigationLayer = null;
-            }
             setMode(MODE.INTERACTION);
         } else if (mode == MODE.SELECTION) {
             var gid = feature.getId();
