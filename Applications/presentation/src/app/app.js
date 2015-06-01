@@ -126,10 +126,7 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
                 });
 
                 neighbourhoodsStatsSource.addFeatures(features);
-                if($('#drawer:visible').length !==0) {
-                    refreshStats();
-                    console.log("a");
-                }
+                
                 
                 
             });
@@ -138,18 +135,6 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
     strategy: ol.loadingstrategy.bbox
 });
 
-
-function refreshStats(){
-    //if($('#drawer:visible').length ==0) return;
-    //console.log(source);
-    
-    statsGenerator.resetFeature();
-    
-    statsGenerator.generatePopupContent(); 
-    
-   
-    
-}
 
 
 // Incidents (as a vector for clustering/styling)
@@ -719,7 +704,6 @@ map.on('pointermove', function(evt) {
 // Capture single clicks (in both modes)
 map.on('singleclick', function(evt) {
     var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
-    console.log(evt.coordinate);
     
     if (features.length > 0) {
         var feature = features[0];

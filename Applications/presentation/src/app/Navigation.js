@@ -49,6 +49,7 @@ app.Navigation.prototype.displayRoute = function(route) {
         })]
     }));
     neighbourhoodNavigationLayer.setVisible(true);
+    statsGenerator.refreshStats();
 };
 
 app.Navigation.prototype.connectCentroids = function(features) {

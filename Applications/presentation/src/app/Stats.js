@@ -28,6 +28,7 @@ app.Statistics = function() {
     this.plotLimit = 3;
     this.pieLimit = 6;
     this.popup ;
+     this.filtering = false;
     
     //Listeners
     $( document ).ready(function() {
@@ -49,34 +50,6 @@ app.Statistics.prototype.setNeighbourhoods = function(newNeighbourhoods) {
         this.neighbourhoods = newNeighbourhoods;
     else
         this.neighbourhoods = [];
-}
-
-app.Statistics.prototype.resetFeature = function(){
-    var features = this.neighbourhoods;
-    if(features.length !== 1) return;
-    var gid = features[0].getId();
-    var feature = neighbourhoodsStatsSource.getFeatureById(gid);
-    
-    
-   // var coord = [-120434.24176069787, 7162426.352546368];
-    //var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(coord);
-    console.log(feature);
-    
-    //console.log(gid);
-   // console.log(neighbourhoodsStatsSource);
-    //var features =source.getFeatures();
-   // console.log(features);
-    /*
-    var features = neighbourhoodsStatsSource.getFeatures().filter(function(element) {
-        console.log(element.getId());
-        return selectedNeighbourhoodGIDs.indexOf(element.getId()) != -1;
-    });
-    
-    */
-    //this.setNeighbourhoods([feature]);
-   // console.log(feature);
-    
-    
 }
 
 app.Statistics.prototype.generatePopupContent = function() {
@@ -371,4 +344,22 @@ app.Statistics.prototype.extractFeature = function(feature,name){
     var periodicstats = feature.get(name);
     periodicstats = (typeof periodicstats !== 'undefined'? JSON.parse(periodicstats): false);
     return periodicstats;
+}
+
+app.Statistics.prototype.setFiltering = function(value){
+    this.filtering = value;
+}
+
+app.Statistics.prototype.refreshStats = function(){
+    if(!this.filtering) { return;}
+    this.setFiltering(false);
+    if($('#drawer:visible').length ==0) {return;}
+    var features = this.neighbourhoods;
+    if(features.length !== 1) {return;}
+    var gid = features[0].getId();
+    var feature = neighbourhoodsStatsSource.getFeatureById(gid);
+    this.setNeighbourhoods([feature]);
+   
+    this.generatePopupContent(); 
+    
 }

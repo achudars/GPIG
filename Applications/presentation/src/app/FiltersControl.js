@@ -294,6 +294,7 @@ app.FiltersControl = function(opt_options) {
                 source.loader_(extent, view.getResolution(), view.getProjection());
             }
         }
+        if($('#drawer:visible').length !==0) {statsGenerator.setFiltering(true)};
     }
 
     ol.control.Control.call(this, {
