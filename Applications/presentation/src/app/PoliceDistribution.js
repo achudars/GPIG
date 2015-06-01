@@ -152,13 +152,33 @@ app.PoliceDistributor.prototype.startDistributionFlow = function() {
             sum += crimeCount;
         }
 
+       
+        var leftoverForce = forceSize - crimeCounts.length;
+        var used = 0, toAdd;
+
         for (i = 0, l = crimeCounts.length; i < l; i++) {
             var ratio = crimeCounts[i] / sum;
+            toAdd= Math.round(ratio * leftoverForce);
 
-            distributionRatios.push(ratio);
-            distributions.push(Math.round(ratio * forceSize));
+            distributionRatios.push(ratio); 
+            distributions.push(toAdd + 1);
+            used += (toAdd + 1);
+            
         }
-
+        
+        //sometimes rounding "loses" some police. Hack to fix
+        if(used < forceSize) {
+            var ratioArray = distributionRatios.map(function(element) {
+                return (element + 0.5) % 1; // get leftover ratio
+            });
+            while(used < forceSize) {
+                var ind = ratioArray.indexOf(Math.max.apply(Math, ratioArray));
+                distributions[ind] =  distributions[ind] + 1;
+                ratioArray[ind] = 0;
+                used += 1;
+            }
+        }
+        
         // Build the final results table
         var element = '<div><p><b>Police distribution amongst area selected</b></p></div>\
                        <div><table class="table table-striped" style="margin-bottom: 0px">\
