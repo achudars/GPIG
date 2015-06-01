@@ -116,8 +116,6 @@ app.Statistics.prototype.generatePopupCharts = function(popup) {
 app.Statistics.prototype.showCharts = function(popup,plotTitle,crimeCategories, crimeData) {
     var pieSizes = this.getSizes();
  
-    console.log(crimeData);
- 
     $(popup).highcharts({
         title: {
             text: plotTitle,
@@ -156,8 +154,7 @@ app.Statistics.prototype.showCharts = function(popup,plotTitle,crimeCategories, 
 
 app.Statistics.prototype.generatePopupChartsTotals = function(popup) {
     var that = this,
-    features = this.neighbourhoods,
-    title="", crimeCounts = 0;
+    features = this.neighbourhoods, crimeCounts = 0;
         
     var plotTitle = 'All Crimes over time' ;    
     
