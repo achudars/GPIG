@@ -77,7 +77,7 @@ var selectedNeighbourhoodGIDs = [];
 // Police distributor
 var policeDistributor = new app.PoliceDistributor();
 
-//Statistics 
+// Statistics
 var statsGenerator = new app.Statistics();
 
 // Navigation
@@ -126,9 +126,6 @@ var neighbourhoodsStatsSource = new ol.source.ServerVector({
                 });
 
                 neighbourhoodsStatsSource.addFeatures(features);
-                
-                
-                
             });
     },
 
@@ -484,22 +481,23 @@ function setMode(newMode, object) {
                 $(statsDrawer).hide("slide", {
                     direction: "left"
                 }, 750);
+
+                // Hide/Clear zoomed incidents
+                incidentsNeighbourhoodLayer.setVisible(false);
+
+                // Do the same for the navigation layer
+                neighbourhoodNavigationLayer.setVisible(false);
             });
 
-            // Reset zoomed feature
-            var feature = neighbourhoodsStatsSource.getFeatureById(zoomState.featureGID);
-            feature.unset('dimmed');
-            if (newMode != MODE.SELECTION) {
-                styles.neighbourhoods.dimmed = false;
-            }
+            // Wait until animations finish (postrender is too soon)
+            setTimeout(function() {
+                // Reset zoomed feature
+                var feature = neighbourhoodsStatsSource.getFeatureById(zoomState.featureGID);
+                feature.unset('dimmed');
+                if (newMode != MODE.SELECTION) {
+                    styles.neighbourhoods.dimmed = false;
+                }
 
-            // Hide/Clear zoomed incidents
-            incidentsNeighbourhoodLayer.setVisible(false);
-
-            // Do the same for the navigation layer
-            neighbourhoodNavigationLayer.setVisible(false);
-
-            map.once('postrender', function() {
                 // Restyle the layer/feature
                 map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
 
@@ -507,7 +505,7 @@ function setMode(newMode, object) {
                 delete zoomState.featureID;
                 delete zoomState.center;
                 delete zoomState.resolution;
-            });
+            }, 750);
 
             view.setCenter(zoomState.center);
             view.setResolution(zoomState.resolution);
@@ -549,10 +547,6 @@ function setMode(newMode, object) {
         zoomState.center = view.getCenter();
         zoomState.resolution = view.getResolution();
 
-        // Update the zoomed incidents layer source
-        incidentsNeighbourhoodSource.neighbourhoodGID = zoomState.featureGID;
-        incidentsNeighbourhoodSource.clear(true);
-
         map.beforeRender(new ol.animation.pan({
             duration: 750,
             source: zoomState.center
@@ -560,9 +554,10 @@ function setMode(newMode, object) {
             duration: 750,
             resolution: zoomState.resolution
         }), function() {
-            // Dimming
-            feature.set('dimmed', false);
-            styles.neighbourhoods.dimmed = true;
+            // Show the stats drawer
+            $(statsDrawer).show("slide", {
+                direction: "left"
+            }, 750);
 
             return false;
         });
@@ -572,20 +567,22 @@ function setMode(newMode, object) {
             maxZoom: zoom.max
         });
 
-        map.once('postrender', function() {
+        // Wait until the animations finish (postrender is too soon)
+        setTimeout(function() {
+            // Dimming
+            feature.set('dimmed', false);
+            styles.neighbourhoods.dimmed = true;
+
+            // Update the zoomed incidents layer source
+            incidentsNeighbourhoodSource.neighbourhoodGID = zoomState.featureGID;
+            incidentsNeighbourhoodSource.clear(true);
+
             // Restyle the layer/feature
             map.getLayerForTitle(neighbourhoodsStatsTitle).restyle(map);
 
             // Make the incidents visible
-            setTimeout(function() {
-                incidentsNeighbourhoodLayer.setVisible(true);
-            }, 750);
-
-            // Show the drawer
-            $(statsDrawer).show("slide", {
-                direction: "left"
-            }, 750);
-        });
+            incidentsNeighbourhoodLayer.setVisible(true);
+        }, 750);
     }
 }
 
@@ -704,7 +701,7 @@ map.on('pointermove', function(evt) {
 // Capture single clicks (in both modes)
 map.on('singleclick', function(evt) {
     var features = neighbourhoodsStatsSource.getFeaturesAtCoordinate(evt.coordinate);
-    
+
     if (features.length > 0) {
         var feature = features[0];
 
@@ -753,4 +750,3 @@ map.on('singleclick', function(evt) {
 // By default disable all selection based items
 $(".selection-required").addClass("disabled");
 $('a.selection-required').on("click", preventDefault);
-

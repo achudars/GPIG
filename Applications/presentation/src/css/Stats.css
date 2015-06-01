@@ -3,11 +3,3 @@
   background-color: #ebebeb;
   border-color: #adadad;
 }
-
-#drawer {
-    display: none; 
-    height:610px; 
-    position: fixed; 
-    bottom: 10px;  
-    top: auto;
-}
