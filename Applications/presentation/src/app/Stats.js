@@ -64,6 +64,9 @@ app.Statistics.prototype.generatePopupContent = function() {
             case "overTime":
                 this.generatePopupCharts(popup);
                 break;
+            case "totalTime":    
+                this.generatePopupChartsTotals(popup);
+                break;
             default:
             // default code block
         }
@@ -106,7 +109,14 @@ app.Statistics.prototype.generatePopupCharts = function(popup) {
         };
     });
     
+    this.showCharts(popup,plotTitle,crimeCategories, crimeData);
+ 
+}
+
+app.Statistics.prototype.showCharts = function(popup,plotTitle,crimeCategories, crimeData) {
     var pieSizes = this.getSizes();
+ 
+    console.log(crimeData);
  
     $(popup).highcharts({
         title: {
@@ -142,9 +152,38 @@ app.Statistics.prototype.generatePopupCharts = function(popup) {
         },
         series: crimeData
     });
- 
 }
 
+app.Statistics.prototype.generatePopupChartsTotals = function(popup) {
+    var that = this,
+    features = this.neighbourhoods,
+    title="", crimeCounts = 0;
+        
+    var plotTitle = 'All Crimes over time' ;    
+    
+    //get array of names of highest crimes
+    var someCrimes = that.getBiggestCrimeNames(features, 200);
+    
+    //get array of dates
+    var crimeCategories= that.getCrimeCategories(features, someCrimes);
+   
+    var totalCrimes = Array.apply(null, new Array(crimeCategories.length)).map(Number.prototype.valueOf,0);
+    //construct array that's supported by charts
+    
+    for(var i = 0; i < someCrimes.length; i++) {
+        crimeCounts = that.getCrimeCounts(features, someCrimes[i],crimeCategories );
+        totalCrimes =  crimeCounts.map(function(count, idx) {
+                return count + totalCrimes[idx];
+        });
+    }
+ 
+    var crimeData = [{data: totalCrimes, name: "All crimes in " + this.getPostCodes(features)}];
+ 
+    
+ 
+   this.showCharts(popup,plotTitle,crimeCategories, crimeData);
+ 
+}
 
 
 app.Statistics.prototype.generatePopupPie = function(popup) {
@@ -221,15 +260,7 @@ app.Statistics.prototype.generatePopupPie = function(popup) {
         });
 
                 
-           
-
-    //$(popup).on('didHide', function(event) {
-    // $(container).highcharts().destroy();
-    // $(container).remove();
-    // $(popup).off(event);
-    //});
-
-           
+     
         
     }
 
@@ -253,7 +284,6 @@ app.Statistics.prototype.getSizes = function(){
 }
 
 
-//PLEASE DON'T REFACTOR - WORK IN PROGRESS
 app.Statistics.prototype.getCrimeCounts=function(features, crimeName , crimeCategories){
     var crimeCounts = Array.apply(null, new Array(crimeCategories.length)).map(Number.prototype.valueOf,0);
     
@@ -278,8 +308,6 @@ app.Statistics.prototype.getCrimeCounts=function(features, crimeName , crimeCate
     return crimeCounts;
 }
 
-
-//PLEASE DON'T REFACTOR - WORK IN PROGRESS
 app.Statistics.prototype.getCrimeCategories = function(features, crimeName){
     var dates = [], crimeCategories=[];
     for(var j = 0; j< features.length;j++) {
