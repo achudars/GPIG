@@ -2,7 +2,7 @@ package com.highcharts.export.server;
 
 import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 public class TimeOut extends TimerTask {
