@@ -6,3 +6,14 @@ GeoServerData/temp/*
 GeoServerData/gwc/*
 /C:\nppdf32Log\debuglog.txt
 *.txt
+/.idea/GPIG.iml
+/Applications/neighbourhoodstats/src/Highcharts/exporting-server/java/highcharts-export/highcharts-export-web/src/highcharts-export-web.iml
+/Applications/neighbourhoodstats/src/Highcharts/exporting-server/java/highcharts-export/highcharts-export-convert/highcharts-export-convert.iml
+/.idea/libraries/highcharts_export_convert.xml
+/.idea/misc.xml
+/.idea/libraries/SOURCE.xml
+/Applications/neighbourhoodstats/src/Highcharts/exporting-server/java/highcharts-export/highcharts-export-web/target/target.iml
+/.idea/libraries/user_projections.xml
+/.idea/vcs.xml
+/.idea/modules.xml
+/.idea/libraries/lib.xml
